@@ -7,7 +7,7 @@ landmarkPath = 'data/Landmarks/Original'
 np.set_printoptions(threshold='nan')
 
 def pcaBuiltIn(landmarks):
-    mean, vec =  cv.PCACompute(landmarks)
+    mean, vec =  cv.PCACompute(landmarks, None)
     covar, _ = cv.calcCovarMatrix(landmarks, cv.cv.CV_COVAR_SCRAMBLED | cv.cv.CV_COVAR_SCALE | cv.cv.CV_COVAR_COLS)
     return covar
 
@@ -16,10 +16,18 @@ def pcaManual(landmarks):
     eigvals, eigvecs = np.linalg.eigh(S)
     idx = np.argsort(-eigvals)
     eigval = eigvals[idx]
-    eigvecs = eigvecs[:, idx]
-    #print eigval
-    return S
-
+    eigvecs = eigvecs[:, idx]   
+    totalVar = np.sum(eigval)
+    
+    i = 0
+    var = 0
+    while var < 0.98*totalVar:
+        var += eigval[i]
+        i+=1
+        
+    nbOfVals = i+1
+    return eigvecs[:,0:nbOfVals]
+	
 def main():
     lm = np.zeros((14, 80), dtype=np.float64)
     index = 0
@@ -29,10 +37,8 @@ def main():
                 lm[index] = [line.rstrip('\n') for line in f]
                 index += 1
     mean, result = alignSetOfShapes(lm)
-    print("111111111111111")
-    first = pcaBuiltIn(result)
-    print("222222222222222")
-    second = pcaManual(result)
-    print np.absolute(first-second)[0]
+    P = pcaManual(result)
+
+    
 if __name__ == '__main__':
     main()
