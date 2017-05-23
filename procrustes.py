@@ -59,6 +59,14 @@ def alignShapes(model, target):
 
     targetX = target[0:][::2]
     targetY = target[1:][::2]
+    
+    cTarget = np.zeros(2)
+    cTarget[0] = np.mean(targetX)
+    cTarget[1] = np.mean(targetY)
+    
+    cModel = np.zeros(2)
+    cModel[0] = np.mean(modelX)
+    cModel[1] = np.mean(modelY)
 
     b = 0
     for i in xrange(0, 40):
@@ -69,8 +77,9 @@ def alignShapes(model, target):
 
     s = np.sqrt(a**2 + b**2)
     theta = np.arctan(b/a)
+    t = cModel - cTarget
 
-    return theta, s
+    return theta, s, t
 
 
 def applyTransformation(shape, s, theta):
@@ -94,11 +103,11 @@ def alignSetOfShapes(setOfShapes):
     while not converged:
         print "running"
         for index, shape in enumerate(translatedShapes):
-            theta, s = alignShapes(x0, shape)
+            theta, s, _ = alignShapes(x0, shape)
             result[index] = applyTransformation(shape, s, theta)
 
         new_mean = findMeanShape(result)
-        theta, s = alignShapes(x0, new_mean)
+        theta, s, _ = alignShapes(x0, new_mean)
         x0_new = applyTransformation(new_mean, s, theta)
         x0_new_scaled = scaleLandmark(x0_new)
         if np.linalg.norm(x0_new_scaled - x0) < 0.02:
@@ -106,6 +115,9 @@ def alignSetOfShapes(setOfShapes):
         else:
             x0 = x0_new_scaled
     return x0_new_scaled, result
+    
+def alignFirLandmarks(currentLms, newLms):
+    theta, s, t = alignShapes(newLms, currentLms)
 
 
 def main():

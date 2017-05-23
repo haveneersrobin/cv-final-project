@@ -21,11 +21,12 @@ def pcaManual(landmarks):
     
     i = 0
     var = 0
-    while var < 0.98*totalVar:
+    while var < 0.99*totalVar:
         var += eigval[i]
         i+=1
-        
+
     nbOfVals = i+1
+    print nbOfVals    
     return eigvecs[:,0:nbOfVals]
 	
 def main():
@@ -38,6 +39,8 @@ def main():
                 index += 1
     mean, result = alignSetOfShapes(lm)
     P = pcaManual(result)
+    print P.shape
+
 
     
 if __name__ == '__main__':
