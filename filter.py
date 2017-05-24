@@ -48,6 +48,8 @@ def sobelWrite(img, name):
 
 if __name__ == '__main__':
 
+    
+
     radioPath = 'data/Radiographs/'
     segmentPath = 'data/Segmentations/'
     resultPath = 'data/Combinations/'
@@ -73,17 +75,23 @@ if __name__ == '__main__':
         
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
         
-    for imgNb in range(1,2):        
+    for imgNb in range(10,11):        
         imgIndex = "%02d" % imgNb
         print 'Loading image '+imgIndex+' ...'
         img = cv2.imread(radioPath+imgIndex+'.tif')
         print 'Converting to gray scale ...'
-        grayimg = cv2.cvtColor(img.copy(), cv2.COLOR_RGB2GRAY)    
+        grayimg = cv2.cvtColor(img.copy(), cv2.COLOR_RGB2GRAY)  
+        print np.mean(grayimg)
         
-        sobelWrite(grayimg,imgIndex+'Sobel')
+        """
+        sobelWrite(grayimg,imgIndex+'Sobel10')
         
         print 'Removing noise ...'
         median = medianfilter(grayimg,9)
+        (h,w) = median.shape
+        img2 = cv2.resize(median,(w/3,h/3))
+        cv2.imshow('',img2)
+        cv2.waitKey(0)
         
         # plt.hist(grayimg.ravel(),256,[0,256])
         # plt.show()
@@ -103,5 +111,5 @@ if __name__ == '__main__':
         print 'Applying Sobel operator ...'
         gauss = gaussian(equ,11)
         
-        sobelWrite(gauss, imgIndex+'SobelGauss')
-        
+        sobelWrite(gauss, imgIndex+'SobelGauss10')
+        """
