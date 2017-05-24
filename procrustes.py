@@ -117,12 +117,8 @@ def alignSetOfShapes(setOfShapes):
             x0 = x0_new_scaled
     return x0_new_scaled, result
     
-def alignFitLandmarks(currentLms, newLms):
-    theta, s, t = alignShapes(newLms, currentLms)
+def alignFitLandmarks(theta, s, t, newLms):    
     theta = -theta
-    print "theta", theta 
-    print "s", s
-    print "t", t
     objectArray = np.reshape(newLms, (2, 40), order='F')
     rotationMatrix = np.array([[np.cos(theta), -np.sin(theta)],
                                [np.sin(theta),  np.cos(theta)]])
@@ -130,7 +126,7 @@ def alignFitLandmarks(currentLms, newLms):
     scaled = (1./s)*rotated
     result = np.transpose(np.transpose(scaled) + np.transpose(t))
     zipped = [val for pair in zip(result[0], result[1]) for val in pair]
-    print zipped
+
     return zipped
 
 def main():
