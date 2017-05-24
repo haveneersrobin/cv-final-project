@@ -59,11 +59,11 @@ def alignShapes(model, target):
 
     targetX = target[0:][::2]
     targetY = target[1:][::2]
-    
+
     cTarget = np.zeros(2)
     cTarget[0] = np.mean(targetX)
     cTarget[1] = np.mean(targetY)
-    
+
     cModel = np.zeros(2)
     cModel[0] = np.mean(modelX)
     cModel[1] = np.mean(modelY)
@@ -115,8 +115,8 @@ def alignSetOfShapes(setOfShapes):
         else:
             x0 = x0_new_scaled
     return x0_new_scaled, result
-    
-def alignFirLandmarks(currentLms, newLms):
+
+def alignFirstLandmarks(currentLms, newLms):
     theta, s, t = alignShapes(newLms, currentLms)
 
 
