@@ -133,7 +133,7 @@ if __name__ == '__main__':
     cGreen = (0,255,0)
 
     k = 1 # mond
-    j = 3 #tand
+    j = 1 #tand
     data = np.loadtxt(landmarkPath+'landmarks'+str(k)+'-'+str(j)+'.txt').astype(int)
     print data,'\n'
 

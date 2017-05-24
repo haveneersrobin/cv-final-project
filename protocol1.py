@@ -68,12 +68,13 @@ def iterate(lm, initialPoints, img, maxIter):
     points = initialPoints
     prevPoints = np.zeros(points.shape)
     it = 0
-    while( np.linalg.norm(points-prevPoints) > 0.001 and it < maxIter ):
+    while( max(abs(points-prevPoints)) > 1 and it < maxIter ):
         #Increment counter
         it+=1
+        print it
         
         #Find next best points Y, from given points 'points'
-        Y = findPoints1(points, 5, img)  
+        Y = findPoints1(points, 3, img)  
         
         #Find best theta, s, t and b to match Y
         theta, s, t, b = protocol1(P, mean, Y)
@@ -90,6 +91,10 @@ def iterate(lm, initialPoints, img, maxIter):
         
         #Set new points
         points = np.asarray(foundPoints)
+        
+        # print "oldPoints=", prevPoints
+        # print "newPoints=", points
+        # print "diff=",max(abs(points-prevPoints))
         
     return mean, Y, foundPoints, initialPoints
         
@@ -135,7 +140,7 @@ def main():
     img = cv2.imread('data/Radiographs/01.tif') 
     (h,w,_) = img.shape    
     sobel = cv2.imread('data/Sobel/01SobelGauss.png')    
-    maxIter = 20
+    maxIter = 100
     mean, Y, foundPoints, initial = iterate(lm, lm[0], sobel, maxIter)
     draw([Y],'blue')
     draw([foundPoints],'red')
