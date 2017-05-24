@@ -73,6 +73,55 @@ def createLineIterator(P1, P2, img):
 
     return itbuffer
 
+    
+def getNormalPoints(points, lgth, img):
+
+    points = np.reshape(points, (40, 2), order='C')
+    x = 0
+    y = 1
+    V = np.zeros(2)
+    Nb = len(points)
+    length = lgth*2
+    zipped = np.zeros((Nb, 3*(length+1)))
+    
+    for idx in range(0,Nb):
+
+        V[x] = points[(idx+1)%Nb,x] - points[(idx-1)%Nb,x]
+        V[y] = points[(idx+1)%Nb,y] - points[(idx-1)%Nb,y]
+        V = V/np.linalg.norm(V)
+        Vt = V[x]
+        V[x] = -V[y]
+        V[y] = Vt
+
+        P1 = np.zeros(2)
+        P2 = np.zeros(2)
+        P0 = np.zeros(2)
+        P0[x] = points[idx,x]
+        P0[y] = points[idx,y]
+        P1[x] = points[idx,x] + (V[x]*length)
+        P1[y] = points[idx,y] + (V[y]*length)
+        P2[x] = points[idx,x] - (V[x]*length)
+        P2[y] = points[idx,y] - (V[y]*length)
+        
+        grayimg = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        itbuffer1 = createLineIterator(np.rint(P0).astype(int),np.rint(P1).astype(int),grayimg)
+        itbuffer2 = createLineIterator(np.rint(P0).astype(int),np.rint(P2).astype(int),grayimg)        
+        intensities1 = itbuffer1[:lgth+1,2]
+        intensities2 = itbuffer2[:lgth+1,2]     
+        xs1 = itbuffer1[:lgth+1,0]
+        ys1 = itbuffer1[:lgth+1,1]
+        xs2 = itbuffer2[:lgth+1,0]
+        ys2 = itbuffer2[:lgth+1,1]
+        xs2 = xs2[::-1]
+        ys2 = ys2[::-1]
+        intensities2 = intensities2[::-1]        
+        xs = np.append(xs2, xs1[1:])
+        ys = np.append(ys2, ys1[1:])
+        intensities = np.append(intensities2, intensities1[1:])
+        zipped[idx] = [val for pair in zip(xs, ys, intensities) for val in pair]
+    return zipped
+    
+    
 if __name__ == '__main__':
 
     radioPath = 'data/Radiographs/'
