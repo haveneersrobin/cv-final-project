@@ -1,7 +1,7 @@
 import os
 import cv2 as cv
 import numpy as np
-from procrustes import alignSetOfShapes
+from procrustes import *
 
 landmarkPath = 'data/Landmarks/Original'
 np.set_printoptions(threshold='nan')

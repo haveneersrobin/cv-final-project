@@ -82,15 +82,16 @@ def alignShapes(model, target):
     return theta, s, t
 
 
-def applyTransformation(shape, s, theta):
+def applyTransformation(x0, shape, s, theta):
     objectArray = np.reshape(shape, (2, 40), order='F')
     rotationMatrix = np.array([[np.cos(theta), -np.sin(theta)],
                                [np.sin(theta),  np.cos(theta)]])
     rotated = np.dot(rotationMatrix, objectArray)
     scaled = s*rotated
-
+    
     zipped = [val for pair in zip(scaled[0], scaled[1]) for val in pair]
-    return np.asarray(zipped)
+    x = 1.0/np.dot(x0, zipped)
+    return x*np.asarray(zipped)
 
 def alignSetOfShapes(setOfShapes):
     translatedShapes = findOriginOffsetOfTeeth(setOfShapes)
@@ -104,11 +105,11 @@ def alignSetOfShapes(setOfShapes):
         print "running"
         for index, shape in enumerate(translatedShapes):
             theta, s, _ = alignShapes(x0, shape)
-            result[index] = applyTransformation(shape, s, theta)
+            result[index] = applyTransformation(x0, shape, s, theta)
 
         new_mean = findMeanShape(result)
         theta, s, _ = alignShapes(x0, new_mean)
-        x0_new = applyTransformation(new_mean, s, theta)
+        x0_new = applyTransformation(x0, new_mean, s, theta)
         x0_new_scaled = scaleLandmark(x0_new)
         if np.linalg.norm(x0_new_scaled - x0) < 0.02:
             converged = True
@@ -116,9 +117,21 @@ def alignSetOfShapes(setOfShapes):
             x0 = x0_new_scaled
     return x0_new_scaled, result
     
-def alignFirLandmarks(currentLms, newLms):
+def alignFitLandmarks(currentLms, newLms):
     theta, s, t = alignShapes(newLms, currentLms)
-
+    theta = -theta
+    print "theta", theta 
+    print "s", s
+    print "t", t
+    objectArray = np.reshape(newLms, (2, 40), order='F')
+    rotationMatrix = np.array([[np.cos(theta), -np.sin(theta)],
+                               [np.sin(theta),  np.cos(theta)]])
+    rotated = np.dot(rotationMatrix, objectArray)
+    scaled = (1./s)*rotated
+    result = np.transpose(np.transpose(scaled) + np.transpose(t))
+    zipped = [val for pair in zip(result[0], result[1]) for val in pair]
+    print zipped
+    return zipped
 
 def main():
     lm = np.zeros((14, 80), dtype=np.float64)
@@ -131,6 +144,7 @@ def main():
     draw(lm, "green")
     mean, result = alignSetOfShapes(lm)
     draw(result, "red", True)
+    alignFitLandmarks(lm[1], lm[2])
 
 if __name__ == '__main__':
     main()

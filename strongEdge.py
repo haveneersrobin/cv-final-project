@@ -75,9 +75,9 @@ def createLineIterator(P1, P2, img):
 
 if __name__ == '__main__':
 
-    radioPath = 'Project Data/_Data/Radiographs/'
-    landmarkPath = 'Project Data/_Data/Landmarks/original/'
-    sobelPath = 'Project Data/_Data/Sobel/'
+    radioPath = 'data/Radiographs/'
+    landmarkPath = 'data/Landmarks/original/'
+    sobelPath = 'data/Sobel/'
 
     cWhite = (255,255,255)
     cBlue = (255,0,0)
