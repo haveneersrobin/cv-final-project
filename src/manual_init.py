@@ -46,6 +46,8 @@ def manual_init(model, radiograph):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+    return
+
 def mouse(event, posx, posy, flags, image):
 
     global currentpos

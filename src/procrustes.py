@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from debug import draw
+from util/debug import draw
 
 landmarkPath = 'data/Landmarks/Original'
 
