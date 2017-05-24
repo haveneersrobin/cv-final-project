@@ -138,8 +138,10 @@ def main():
                 index += 1
                 
     img = cv2.imread('data/Radiographs/01.tif') 
+    grayimg = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     (h,w,_) = img.shape    
-    sobel = cv2.imread('data/Sobel/01SobelGauss.png')    
+    sobel = cv2.imread('data/Sobel/01SobelGauss.png')   
+    sobel = cv2.cvtColor(sobel, cv2.COLOR_RGB2GRAY)    
     maxIter = 100
     mean, Y, foundPoints, initial = iterate(lm, lm[0], sobel, maxIter)
     draw([Y],'blue')

@@ -74,7 +74,7 @@ def createLineIterator(P1, P2, img):
     return itbuffer
 
     
-def getNormalPoints(points, lgth, img):
+def getNormalPoints(points, lgth, grayimg):
 
     points = np.reshape(points, (40, 2), order='C')
     x = 0
@@ -103,7 +103,6 @@ def getNormalPoints(points, lgth, img):
         P2[x] = points[idx,x] - (V[x]*length)
         P2[y] = points[idx,y] - (V[y]*length)
         
-        grayimg = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         itbuffer1 = createLineIterator(np.rint(P0).astype(int),np.rint(P1).astype(int),grayimg)
         itbuffer2 = createLineIterator(np.rint(P0).astype(int),np.rint(P2).astype(int),grayimg)        
         intensities1 = itbuffer1[:lgth+1,2]
