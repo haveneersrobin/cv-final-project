@@ -68,7 +68,7 @@ if __name__ == '__main__':
 		imgIndex = "%02d" % k
 		img = cv2.imread(radioPath+imgIndex+'.tif')
 		grayimg = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-		
+		grayimg = cv2.cvtColor(grayimg, cv2.COLOR_RGB2GRAY)
 		medfilter = filters.median_filter(grayimg,5)
 		(h,w) = medfilter.shape
 		medfilter_res = cv2.resize(medfilter, (w/3, h/3))
