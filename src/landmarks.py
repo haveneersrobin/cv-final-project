@@ -85,7 +85,7 @@ class Landmarks:
 
 # Open one tooth for one person. Returns landmark.
 def load_one_landmark(person, tooth):
-    print "Opening tooth " + tooth + " for person " + person + "."
+    print "Opening tooth " + str(tooth) + " for person " +str(person) + "."
     path = os.path.join(paths.LANDMARK, 'landmarks'+str(person)+'-'+str(tooth)+'.txt')
     return Landmarks(path)
 
@@ -120,7 +120,7 @@ def all_to_origin(landmarks_list):
         _, out = landmark.to_origin()
         result.append(out)
     return result
-    
+
 # Return the mean landmark given a list of landmarks
 def mean_shape(landmarks_list):
     return Landmarks(np.mean(map(methodcaller('get_list'), landmarks_list), axis=0))

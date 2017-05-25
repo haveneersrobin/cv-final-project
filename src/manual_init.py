@@ -25,8 +25,8 @@ def manual_init(model, norm, radiograph):
 
     # Landmarks have origin (0,0) so we move the origin such that all x's and y's are positive
     # We also scale the points as we just scaled the image
-    x = model[0:][::2]
-    y = model[1:][::2]
+    x = model[0]
+    y = model[1]
 
     xmin = abs(x.min())
     ymin = abs(y.min())
@@ -86,10 +86,10 @@ def redraw(image, posx, posy):
 def main():
         lm  = load_one_landmark(1, 2)
         i = load_image(1)
-        _, result = findOriginOffsetOfTooth(lm.get_list())
-        normalized, norm = scaleLandmark(result)
+        _, result = lm.to_origin()
+        normalized, norm = result.scale()
 
-        manual_init(normalized, norm, i)
+        manual_init(normalized.get_two_lists(), norm, i)
 
 if __name__ == '__main__':
     main()
