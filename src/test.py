@@ -5,11 +5,8 @@ import paths
 from landmarks import *
 
 def main():
-    lm1 = Landmarks(os.path.join(paths.LANDMARK, 'landmarks1-2.txt'))
-    lm2 = Landmarks(lm1.get_list())
-    print lm2.get_list()
-    print lm2.get_matrix()
-    print lm2.get_two_lists()
+    landmar_list = load_landmarks_for_person(1)
+    print landmar_list
 
 if __name__ == '__main__':
     main()

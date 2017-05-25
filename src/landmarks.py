@@ -1,4 +1,6 @@
 import numpy as np
+import os
+import paths
 
 class Landmarks:
 
@@ -52,3 +54,17 @@ class Landmarks:
 
     def _set_matrix(self, matrix):
         self.points = np.asarray(matrix.flatten(), dtype=np.float64)
+
+# Open tooth number for person. Returns landmark.
+def load_one_landmark(person, tooth):
+    path = os.path.join(paths.LANDMARK, 'landmarks'+str(person)+'-'+str(tooth)+'.txt')
+    return Landmarks(path)
+
+# Load all landmarks for one person. Return a list containg 8 landmark objects.
+def load_landmarks_for_person(person):
+    landmark_list = []
+    for i in range(1, 9):
+        print i
+        path = os.path.join(paths.LANDMARK, 'landmarks'+str(person)+'-'+str(i)+'.txt')
+        landmark_list.append(Landmarks(path))
+    return landmark_list

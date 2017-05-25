@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from util/debug import draw
+from debug import draw
 
 landmarkPath = 'data/Landmarks/Original'
 
@@ -12,8 +12,8 @@ def findOriginOffsetOfTooth(landmarks):
     points translated to origin.
     NOTE: This is for one tooth
     """
-    x = landmarks[0:][::2]
-    y = landmarks[1:][::2]
+    x = landmarks[0::2]
+    y = landmarks[1::2]
 
     xtranslated = x - np.mean(x)
     ytranslated = y - np.mean(y)
@@ -46,7 +46,7 @@ def scaleLandmark(landmark):
     result = np.zeros(landmark.shape)
     norm = np.linalg.norm(landmark)
     result = landmark/norm
-    return result
+    return result, norm
 
 
 def alignShapes(model, target):
@@ -95,7 +95,7 @@ def applyTransformation(x0, shape, s, theta):
 
 def alignSetOfShapes(setOfShapes):
     translatedShapes = findOriginOffsetOfTeeth(setOfShapes)
-    x0 = scaleLandmark(translatedShapes[0])
+    x0,_ = scaleLandmark(translatedShapes[0])
 
     result = np.zeros(setOfShapes.shape)
 
@@ -110,7 +110,7 @@ def alignSetOfShapes(setOfShapes):
         new_mean = findMeanShape(result)
         theta, s, _ = alignShapes(x0, new_mean)
         x0_new = applyTransformation(x0, new_mean, s, theta)
-        x0_new_scaled = scaleLandmark(x0_new)
+        x0_new_scaled,_ = scaleLandmark(x0_new)
         if np.linalg.norm(x0_new_scaled - x0) < 0.02:
             converged = True
         else:

@@ -4,21 +4,22 @@ import numpy as np
 import sys
 import cv2
 from procrustes import *
+from debug import *
+from radiograph import *
+import paths
 
-landmarkPath = 'data/Landmarks/Original'
-radiographPath = 'data/Radiographs/'
-
-def manual_init(model, radiograph):
+def manual_init(model, norm, radiograph):
 
     global current_tooth
+    global first_click
+    global dragged
 
-    r = 1000.0 / radiograph.shape[0]
-    dim = (1000, int(radiograph.shape[1] * r))
+    first_click = True
+    dragged = False
 
-    scaleheight = 1000*float(dim[0])/float(radiograph.shape[0])
-    scalewidth = 1000*float(dim[1])/float(radiograph.shape[1])
+    ratio, new_dimensions = radiograph.resize(radiograph)
 
-    resized = cv2.resize(radiograph, (dim[1], dim[0]), interpolation = cv2.INTER_AREA)
+    resized = cv2.resize(radiograph, new_dimensions, interpolation = cv2.INTER_AREA)
 
     canvas = np.array(resized)
 
@@ -30,23 +31,19 @@ def manual_init(model, radiograph):
     xmin = abs(x.min())
     ymin = abs(y.min())
 
-    x_scaled = np.asarray(x+xmin, dtype=np.float64)*r*scalewidth
-    y_scaled = np.asarray(y+ymin, dtype=np.float64)*r*scaleheight
+    x_scaled = np.asarray(x+xmin, dtype=np.float64)*ratio*norm
+    y_scaled = np.asarray(y+ymin, dtype=np.float64)*ratio*norm
 
     zipped = np.asarray(zip(x_scaled, y_scaled), dtype=np.int32)
     current_tooth = zipped
 
-    global first_click
-    first_click = True
-    global dragged
-    dragged = False
     cv2.polylines(resized, [zipped], True, (0, 255, 0))
     cv2.imshow('Place model', resized)
     cv2.setMouseCallback('Place model', mouse,canvas)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    return
+    return c
 
 def mouse(event, posx, posy, flags, image):
 
@@ -91,12 +88,14 @@ def redraw(image, posx, posy):
 
 
 def main():
-    with open(os.path.join(landmarkPath, 'landmarks1-2.txt'), 'r') as f:
-        i = cv2.imread(radiographPath+'01'+'.tif')
-        lm = np.asarray([line.rstrip('\n') for line in f], dtype=np.float64)
-        _, result = findOriginOffsetOfTooth(lm)
-        normalized = scaleLandmark(result)
-        manual_init(normalized, i)
+    with open(os.path.join(paths.LANDMARK, 'landmarks1-2.txt'), 'r') as f:
+        i = cv2.imread(paths.RADIO+'01'+'.tif')
+        lm = Landmark(f)
+        _, result = findOriginOffsetOfTooth(lm.get)
+
+        normalized, norm = scaleLandmark(result)
+
+        manual_init(normalized, norm, i)
 
 if __name__ == '__main__':
     main()
