@@ -1,6 +1,11 @@
 import numpy as np
+import matplotlib.pyplot as plt
+
 import os
 import paths
+from operator import methodcaller
+
+import collections
 
 class Landmarks:
 
@@ -22,8 +27,8 @@ class Landmarks:
                 elif coordinates.shape == (40,2):
                     self._set_matrix(coordinates)
             else:
-                print coord_type
                 print "Invalid landmarks type"
+                print type(coordinates)
 
     def _open_landmarks(self, path):
         # Open landmarks and save as points if path is given
@@ -50,21 +55,72 @@ class Landmarks:
         return np.asarray(zip(x,y), dtype=np.float64)
 
     def _set_two_lists(self, two_lists):
-        self.points = np.asarray(zip(two_lists)).flatten()
+        self.points = np.asarray(zip(two_lists[0], two_lists[1])).flatten()
 
     def _set_matrix(self, matrix):
         self.points = np.asarray(matrix.flatten(), dtype=np.float64)
 
-# Open tooth number for person. Returns landmark.
+    def scale(self):
+        self_list = self.get_list()
+        norm = self.get_norm()
+        result = self_list/norm
+        return Landmarks(result), norm
+
+    def to_origin(self):
+        x,y = self.get_two_lists()
+
+        xtranslated = x - np.mean(x)
+        ytranslated = y - np.mean(y)
+
+        return (np.mean(x), np.mean(y)), Landmarks((xtranslated,ytranslated))
+
+    def get_norm(self):
+        self_list = self.get_list()
+        return np.linalg.norm(self_list)
+
+    # Dot product for landmarks
+    def dot(self, other):
+        return Landmarks(np.dot(self.get_list(), other.get_list()))
+
+
+# Open one tooth for one person. Returns landmark.
 def load_one_landmark(person, tooth):
+    print "Opening tooth " + tooth + " for person " + person + "."
     path = os.path.join(paths.LANDMARK, 'landmarks'+str(person)+'-'+str(tooth)+'.txt')
     return Landmarks(path)
 
+# Open landmarks for given tooth for all persons. Returns list of landmarks of one tooth for all persons.
+def load_all_landmarks_for_tooth(tooth):
+    print "Opening all landmarks of tooth " + str(tooth) + "."
+    print "Opening person",
+    landmark_list = []
+    for i in range(1, 15):
+        print str(i) + "...",
+        path = os.path.join(paths.LANDMARK, 'landmarks'+str(i)+'-'+str(tooth)+'.txt')
+        landmark_list.append(Landmarks(path))
+    return landmark_list
+
 # Load all landmarks for one person. Return a list containg 8 landmark objects.
 def load_landmarks_for_person(person):
+    print "Opening all landmarks for person " + str(person) + "."
+    print "Opening tooth",
     landmark_list = []
     for i in range(1, 9):
-        print i
+        print str(i) + "...",
         path = os.path.join(paths.LANDMARK, 'landmarks'+str(person)+'-'+str(i)+'.txt')
         landmark_list.append(Landmarks(path))
     return landmark_list
+
+# Given a list of landmark objects
+# it calculates the mean and returns a list with new landmarks
+# but with translated x and y coordinates.
+def all_to_origin(landmarks_list):
+    result = []
+    for index, landmark in enumerate(landmarks_list):
+        _, out = landmark.to_origin()
+        result.append(out)
+    return result
+    
+# Return the mean landmark given a list of landmarks
+def mean_shape(landmarks_list):
+    return Landmarks(np.mean(map(methodcaller('get_list'), landmarks_list), axis=0))

@@ -1,64 +1,22 @@
 import os
 import numpy as np
 from debug import draw
+from landmarks import *
 
 landmarkPath = 'data/Landmarks/Original'
 
+def findMeanShape(landmark_list):
+    mean_lm = [np.zeros(landmark_list[0].get_list().shape)]
+    mean_lm = mean_shape(landmark_list)
+    return mean_lm
 
-def findOriginOffsetOfTooth(landmarks):
-    """
-    Given a list of x and y coordinates/points, find the center origin.
-    Returns the offset from the (0,0)-origina and a 2d array of
-    points translated to origin.
-    NOTE: This is for one tooth
-    """
-    x = landmarks[0::2]
-    y = landmarks[1::2]
-
-    xtranslated = x - np.mean(x)
-    ytranslated = y - np.mean(y)
-
-    result = [val for pair in zip(xtranslated, ytranslated) for val in pair]
-
-    return (np.mean(x), np.mean(y)), np.asarray(result)
-
-def findMeanShape(shapeList):
-    mean_shape = np.zeros(shapeList[0].shape)
-    mean_shape = np.mean(shapeList, axis=0)
-    return mean_shape
-
-def findOriginOffsetOfTeeth(landmarksList):
-    """
-    Given a 2D-array for one kind of tooth,
-    where each element holds a list of landmarks
-    it calculates the mean and returns the same list
-    but with translated x and y coordinates.
-    NOTE: This is for one incisor for multiple persons
-    """
-    result = np.zeros(landmarksList.shape)
-    for index, landmark in enumerate(landmarksList):
-        result[index] = findOriginOffsetOfTooth(landmark)[1]
-
-    return result
-
-
-def scaleLandmark(landmark):
-    result = np.zeros(landmark.shape)
-    norm = np.linalg.norm(landmark)
-    result = landmark/norm
-    return result, norm
-
-
-def alignShapes(model, target):
+def alignShapes(lm_model, lm_target):
     """
     Returns theta and scaling factor.
     Model is the given, already scaled landmark.
     """
-    modelX = model[0:][::2]
-    modelY = model[1:][::2]
-
-    targetX = target[0:][::2]
-    targetY = target[1:][::2]
+    modelX, modelY = lm_model.get_two_lists()
+    targetX, targetY = lm_target.get_two_lists()
 
     cTarget = np.zeros(2)
     cTarget[0] = np.mean(targetX)
@@ -71,9 +29,9 @@ def alignShapes(model, target):
     b = 0
     for i in xrange(0, 40):
         b += (targetX[i]*modelY[i]-targetY[i]*modelX[i])
-    b /= (np.linalg.norm(target)**2)
+    b /= (np.linalg.norm(lm_target.get_list())**2)
 
-    a = np.dot(model, target)/(np.linalg.norm(target)**2)
+    a = np.dot(lm_model.get_list(), lm_target.get_list())/(np.linalg.norm(lm_target.get_list())**2)
 
     s = np.sqrt(a**2 + b**2)
     theta = np.arctan(b/a)
@@ -83,38 +41,46 @@ def alignShapes(model, target):
 
 
 def applyTransformation(x0, shape, s, theta):
-    objectArray = np.reshape(shape, (2, 40), order='F')
+    to_reshape = shape.get_list()
+    objectArray = np.reshape(to_reshape, (2, 40), order='F')
     rotationMatrix = np.array([[np.cos(theta), -np.sin(theta)],
                                [np.sin(theta),  np.cos(theta)]])
     rotated = np.dot(rotationMatrix, objectArray)
     scaled = s*rotated
+    lm_scaled = Landmarks(scaled.T)
 
-    zipped = [val for pair in zip(scaled[0], scaled[1]) for val in pair]
-    x = 1.0/np.dot(x0, zipped)
-    return x*np.asarray(zipped)
+    x = 1.0/np.dot(x0.get_list(), lm_scaled.get_list())
+    return Landmarks(x*lm_scaled.get_list())
 
-def alignSetOfShapes(setOfShapes):
-    translatedShapes = findOriginOffsetOfTeeth(setOfShapes)
-    x0,_ = scaleLandmark(translatedShapes[0])
+def alignSetOfShapes(landmark_list):
+    print
+    print "Start aligning"
+    counter = 1
+    translated_lms = all_to_origin(landmark_list)
+    x0,_ = translated_lms[0].scale()
 
-    result = np.zeros(setOfShapes.shape)
+    result = []
 
     converged = False
 
     while not converged:
-        print "running"
-        for index, shape in enumerate(translatedShapes):
-            theta, s, _ = alignShapes(x0, shape)
-            result[index] = applyTransformation(x0, shape, s, theta)
+        print "Iteration " + str(counter)
+        for index, shape in enumerate(translated_lms):
 
-        new_mean = findMeanShape(result)
+            theta, s, _ = alignShapes(x0, shape)
+            result.append(applyTransformation(x0, shape, s, theta))
+
+            new_mean = findMeanShape(result)
         theta, s, _ = alignShapes(x0, new_mean)
         x0_new = applyTransformation(x0, new_mean, s, theta)
-        x0_new_scaled,_ = scaleLandmark(x0_new)
-        if np.linalg.norm(x0_new_scaled - x0) < 0.02:
+        x0_new_scaled,_ = x0_new.scale()
+
+        if np.linalg.norm(x0_new_scaled.get_list() - x0.get_list()) < 0.02:
             converged = True
         else:
             x0 = x0_new_scaled
+        counter += 1
+    print "Done"
     return x0_new_scaled, result
 
 
@@ -130,17 +96,12 @@ def alignFitLandmarks(theta, s, t, newLms):
     return zipped
 
 def main():
-    lm = np.zeros((14, 80), dtype=np.float64)
     index = 0
-    for file in os.listdir("./data/Landmarks/Original"):
-        if file.endswith("1.txt"):
-            with open(os.path.join(landmarkPath, file), 'r') as f:
-                lm[index] = [line.rstrip('\n') for line in f]
-                index += 1
-    draw(lm, "green")
-    mean, result = alignSetOfShapes(lm)
-    draw(result, "red", True)
-    alignFitLandmarks(lm[1], lm[2])
+    landmark_list = load_all_landmarks_for_tooth(1)
+    #draw(landmark_list, "green")
+    mean, result = alignSetOfShapes(landmark_list)
+    #draw(result, "red", True)
+    #alignFitLandmarks(landmark_list[1], landmark_list[2])
 
 if __name__ == '__main__':
     main()

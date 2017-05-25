@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-
 import numpy as np
 import sys
 import cv2
+import paths
+
+from landmarks import *
 from procrustes import *
 from debug import *
 from radiograph import *
-import paths
 
 def manual_init(model, norm, radiograph):
 
@@ -16,10 +17,9 @@ def manual_init(model, norm, radiograph):
 
     first_click = True
     dragged = False
+    ratio, new_dimensions = scale_radiograph(radiograph, 800)
 
-    ratio, new_dimensions = radiograph.resize(radiograph)
-
-    resized = cv2.resize(radiograph, new_dimensions, interpolation = cv2.INTER_AREA)
+    resized = cv2.resize(radiograph, (new_dimensions[1], new_dimensions[0]), interpolation = cv2.INTER_AREA)
 
     canvas = np.array(resized)
 
@@ -43,35 +43,32 @@ def manual_init(model, norm, radiograph):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    return c
-
+    print current_tooth
+    return current_tooth
 def mouse(event, posx, posy, flags, image):
 
     global currentpos
     global current_tooth
+    global newTooth
     global dragged
     global first_click
 
     if event == cv2.EVENT_LBUTTONDOWN:
         if not(first_click):
             dragged = True
-            print dragged
             currentpos = (posx, posy)
     elif event == cv2.EVENT_LBUTTONUP:
         if not(first_click):
             dragged = False
             current_tooth = newTooth
-            print current_tooth
         else:
             first_click = False
     elif event == cv2.EVENT_MOUSEMOVE:
         if not(first_click) and dragged:
-            print "dragging"
             redraw(image, posx, posy)
 
 
 def redraw(image, posx, posy):
-    print 'redrawing'
     global newTooth
 
     imgh = image.shape[0]
@@ -79,20 +76,17 @@ def redraw(image, posx, posy):
     dx = (posx-currentpos[0])
     dy = (posy-currentpos[1])
 
-    points = [(p[0]+dx, p[1]+dy) for p in current_tooth]
+    points = np.asarray([(point[0]+dx, point[1]+dy) for point in current_tooth], dtype=np.int32)
     newTooth = points
 
-    pimg = np.array([(int(p[0]), int(p[1])) for p in points])
-    cv2.polylines(tmp, [pimg], True, (0, 255, 0))
+    cv2.polylines(tmp, [points], True, (0, 255, 0))
     cv2.imshow('Place model', tmp)
 
 
 def main():
-    with open(os.path.join(paths.LANDMARK, 'landmarks1-2.txt'), 'r') as f:
-        i = cv2.imread(paths.RADIO+'01'+'.tif')
-        lm = Landmark(f)
-        _, result = findOriginOffsetOfTooth(lm.get)
-
+        lm  = load_one_landmark(1, 2)
+        i = load_image(1)
+        _, result = findOriginOffsetOfTooth(lm.get_list())
         normalized, norm = scaleLandmark(result)
 
         manual_init(normalized, norm, i)
