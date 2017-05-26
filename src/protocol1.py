@@ -14,7 +14,12 @@ from procrustes import *
 from pca import *
 from debug import *
 from normal import *
+from landmarks import *
 
+# Implementation of Protocol 1 (see paper in Literature).
+#   - ASM is a matrix containing eigenvectors. 
+#   - meanShape is the mean shape after alignment. This is a Landmarks object.
+#   - Y are the next best points to move towards. This is a Landmarks object.
 def protocol1(ASM, meanShape, Y):
     #1 - Set b to zeros.
     bPrev = np.ones(ASM.shape[1])
@@ -29,7 +34,7 @@ def protocol1(ASM, meanShape, Y):
         print "Protocol 1 while loop."
         
         #2 - Generate model points.
-        modelXs = meanShape + np.dot(ASM,b)
+        modelXs = Landmarks(meanShape.get_list() + np.dot(ASM,b))
         # print "ModelXs", modelXs
         
         #3 - Align Y.
@@ -41,18 +46,21 @@ def protocol1(ASM, meanShape, Y):
         # print "y", y
         
         #5 - Project y.
-        yProj = y/np.dot(y,meanShape)
+        yProj = Landmarks(y.get_list()/y.dot(meanShape).get_list())
         # print "yProj", yProj
         
         #6 - Update b.
         bPrev = b
-        b = np.dot(np.transpose(ASM),(yProj - meanShape))
+        b = np.dot(np.transpose(ASM),(yProj.get_list() - meanShape.get_list()))
         # print "bPrev", bPrev
         # print "b", b
         
     # print "END"
     return theta, s, t, b
     
+# Apply contraints to b so that
+# -3*sqrt(lambda_i) < b_i < 3*sqrt(lamda_i)
+# where lambda_i is the i'th eigenvalue.     
 def constrainB(b, vals):
     for idx, val in enumerate(vals):
         if b[idx] > 3*np.sqrt(vals[idx]):
@@ -60,50 +68,54 @@ def constrainB(b, vals):
         elif b[idx] < -3*np.sqrt(vals[idx]):
             b[idx] = -3*np.sqrt(vals[idx])
     return b
-    
-def iterate(lm, initialPoints, img, maxIter):
 
-    mean, result = alignSetOfShapes(lm)
+# Improve the current shape until convergence. 
+#   - landmark_list is a list of Landmark objects.
+#   - initialPoints is a Landmarks object.
+def iterate(landmark_list, initialPoints, img, maxIter):
+
+    meanShape, result = alignSetOfShapes(landmark_list)
     vals, P = pcaManual(result)
     points = initialPoints
-    prevPoints = np.zeros(points.shape)
+    prevPoints = Landmarks(np.zeros(points.get_list().shape))
     it = 0
-    while( max(abs(points-prevPoints)) > 1 and it < maxIter ):
+    
+    while( max(abs(points.get_list()-prevPoints.get_list())) > 1 and it < maxIter ):
         #Increment counter
         it+=1
         print it
         
         #Find next best points Y, from given points 'points'
-        Y = findPoints1(points, 3, img)  
+        Y = findPoints1(points, len=3, img)  
         
         #Find best theta, s, t and b to match Y
-        theta, s, t, b = protocol1(P, mean, Y)
+        theta, s, t, b = protocol1(P, meanShape, Y)
         
         # Apply constraints to b
         b = constrainB(b, vals)    
 
         #Find image coordinates of new points
-        foundPoints = mean + np.dot(P, b)
+        foundPoints = Landmarks(meanShape.get_list() + np.dot(P, b))
         foundPoints = alignFitLandmarks(theta, s, t, foundPoints)
         
         #Store previous points
         prevPoints = points
         
         #Set new points
-        points = np.asarray(foundPoints)
+        points = foundPoints
         
         # print "oldPoints=", prevPoints
         # print "newPoints=", points
         # print "diff=",max(abs(points-prevPoints))
         
-    return mean, Y, foundPoints, initialPoints
+    return meanShape, Y, foundPoints, initialPoints
         
         
 # Find best neighbour points according to strongest edge in given gradient image.        
 def findPoints1(points, len, img):
 
-    newXs = np.zeros(points.shape[0]/2)
-    newYs = np.zeros(points.shape[0]/2)
+    newXs = np.zeros(points.get_list().shape[0]/2)
+    newYs = np.zeros(points.get_list().shape[0]/2)
     itbuffer = getNormalPoints(points, len, img)
     xs = itbuffer[:,0::3]
     ys = itbuffer[:,1::3]
@@ -115,7 +127,7 @@ def findPoints1(points, len, img):
         newXs[idx] = xs[idx][indx]
         newYs[idx] = ys[idx][indx]
         
-    return [val for pair in zip(newXs, newYs) for val in pair]
+    return Landmarks([val for pair in zip(newXs, newYs) for val in pair])
 
 #Find best neighbour points according to grey level model.    
 def findPoints2(points, img):

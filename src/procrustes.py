@@ -94,7 +94,7 @@ def alignFitLandmarks(theta, s, t, newLms):
     result = np.transpose(np.transpose(scaled) + np.transpose(t))
     zipped = [val for pair in zip(result[0], result[1]) for val in pair]
 
-    return zipped
+    return Landmarks(zipped)
 
 def main():
     index = 0

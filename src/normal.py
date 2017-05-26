@@ -80,6 +80,7 @@ def createLineIterator(P1, P2, img):
 def getNormalPoints(points, lgth, grayimg):
 
     #define variables
+    points = points.get_list()
     points = np.reshape(points, (40, 2), order='C')
     x = 0
     y = 1
