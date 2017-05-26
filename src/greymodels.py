@@ -18,6 +18,13 @@ from normal import *
 from landmarks import *
 from radiograph import *
 
+"""
+
+    Grey level models according to:
+    https://pdfs.semanticscholar.org/5b34/59be44b9eb7d8679ba348db4dfabcd5a8522.pdf
+
+"""
+
 # Load images as grayscales.
 def loadImages():
     images = []
