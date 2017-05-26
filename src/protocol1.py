@@ -15,6 +15,7 @@ from pca import *
 from debug import *
 from normal import *
 from landmarks import *
+from ASM import *
 
 # Implementation of Protocol 1 (see paper in Literature).
 #   - ASM is a matrix containing eigenvectors. 
@@ -74,8 +75,7 @@ def constrainB(b, vals):
 #   - initialPoints is a Landmarks object.
 def iterate(landmark_list, initialPoints, img, maxIter):
 
-    meanShape, result = alignSetOfShapes(landmark_list)
-    vals, P = pcaManual(result)
+    meanShape, P, vals = buildASM(landmark_list)
     points = initialPoints
     prevPoints = Landmarks(np.zeros(points.get_list().shape))
     it = 0

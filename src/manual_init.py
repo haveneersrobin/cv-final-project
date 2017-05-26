@@ -45,6 +45,8 @@ def manual_init(model, norm, radiograph):
 
     print current_tooth
     return current_tooth
+    
+    
 def mouse(event, posx, posy, flags, image):
 
     global currentpos

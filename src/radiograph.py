@@ -17,8 +17,5 @@ def to_grayscale(image):
 
 # Returns the radiograph for the given person
 def load_image(person):
-    if(person <= 9):
-        string = '0'+str(person)
-    else:
-        string = str(person)
+    string = "%02d" % (person)
     return cv2.imread(paths.RADIO+string+'.tif')
