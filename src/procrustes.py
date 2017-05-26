@@ -85,7 +85,8 @@ def alignSetOfShapes(landmark_list):
 
 
 def alignFitLandmarks(theta, s, t, newLms):
-    objectArray = np.reshape(newLms, (2, 40), order='F')
+    to_reshape = newLms.get_list()
+    objectArray = np.reshape(to_reshape, (2, 40), order='F')
     rotationMatrix = np.array([[np.cos(theta), -np.sin(theta)],
                                [np.sin(theta),  np.cos(theta)]])
     rotated = np.dot(rotationMatrix, objectArray)

@@ -104,10 +104,10 @@ def findPoints1(points, len, img):
 
     newXs = np.zeros(points.shape[0]/2)
     newYs = np.zeros(points.shape[0]/2)
-    zipped = getNormalPoints(points, len, img)
-    xs = zipped[:,0::3]
-    ys = zipped[:,1::3]
-    intensities = zipped[:,2::3]
+    itbuffer = getNormalPoints(points, len, img)
+    xs = itbuffer[:,0::3]
+    ys = itbuffer[:,1::3]
+    intensities = itbuffer[:,2::3]
     for idx, ints in enumerate(intensities):
         max_value = np.amax(ints)
         max_index = np.where(ints==max_value)
@@ -115,8 +115,7 @@ def findPoints1(points, len, img):
         newXs[idx] = xs[idx][indx]
         newYs[idx] = ys[idx][indx]
         
-    zipped = [val for pair in zip(newXs, newYs) for val in pair]
-    return zipped
+    return [val for pair in zip(newXs, newYs) for val in pair]
 
 #Find best neighbour points according to grey level model.    
 def findPoints2(points, img):

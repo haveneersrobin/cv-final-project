@@ -11,6 +11,8 @@ from scipy import signal
 from  scipy.ndimage import filters
 from scipy.ndimage import morphology
 
+# Return a matrix containing the coordinates and values 
+# of the pixels on the line between P1 and P2.
 def createLineIterator(P1, P2, img):
     #define local variables for readability
     imageH = img.shape[0]
@@ -73,9 +75,11 @@ def createLineIterator(P1, P2, img):
 
     return itbuffer
 
-    
+# Get a list of coordinates and values of pixels 
+# on each side of all the landmark points.    
 def getNormalPoints(points, lgth, grayimg):
 
+    #define variables
     points = np.reshape(points, (40, 2), order='C')
     x = 0
     y = 1
@@ -86,6 +90,7 @@ def getNormalPoints(points, lgth, grayimg):
     
     for idx in range(0,Nb):
 
+        #define vector points
         V[x] = points[(idx+1)%Nb,x] - points[(idx-1)%Nb,x]
         V[y] = points[(idx+1)%Nb,y] - points[(idx-1)%Nb,y]
         V = V/np.linalg.norm(V)
@@ -93,6 +98,7 @@ def getNormalPoints(points, lgth, grayimg):
         V[x] = -V[y]
         V[y] = Vt
 
+        #define begin and end points
         P1 = np.zeros(2)
         P2 = np.zeros(2)
         P0 = np.zeros(2)
@@ -103,8 +109,11 @@ def getNormalPoints(points, lgth, grayimg):
         P2[x] = points[idx,x] - (V[x]*length)
         P2[y] = points[idx,y] - (V[y]*length)
         
+        #construct buffers
         itbuffer1 = createLineIterator(np.rint(P0).astype(int),np.rint(P1).astype(int),grayimg)
-        itbuffer2 = createLineIterator(np.rint(P0).astype(int),np.rint(P2).astype(int),grayimg)        
+        itbuffer2 = createLineIterator(np.rint(P0).astype(int),np.rint(P2).astype(int),grayimg) 
+
+        #reverse values
         intensities1 = itbuffer1[:lgth+1,2]
         intensities2 = itbuffer2[:lgth+1,2]     
         xs1 = itbuffer1[:lgth+1,0]
@@ -117,6 +126,8 @@ def getNormalPoints(points, lgth, grayimg):
         xs = np.append(xs2, xs1[1:])
         ys = np.append(ys2, ys1[1:])
         intensities = np.append(intensities2, intensities1[1:])
+        
+        #combine into one list
         zipped[idx] = [val for pair in zip(xs, ys, intensities) for val in pair]
     return zipped
     
