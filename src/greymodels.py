@@ -15,46 +15,25 @@ from procrustes import *
 from pca import *
 from debug import *
 from normal import *
+from landmarks import *
+from radiograph import *
 
 def loadImages():
     images = []
-    for i in xrange(0,14):
-        imgIndex = "%02d" % (i+1)
-        img = cv2.imread(paths.RADIO+imgIndex+'.tif')  
-        images.append(cv2.cvtColor(img, cv2.COLOR_RGB2GRAY))
+    for i in xrange(1,15):
+        images.append(to_grayscale(load_image(i)))
     return np.asarray(images)
     
     
-def loadAllLandmarks():
-    
-    landmarks = np.zeros((8,14,80)) # for each of the 8 teth, for all 14 mouhts, load all 40 landmarks (80 values)
-    landmarksPerToothKind = np.zeros((14,80))
-    for i in range(0,8):
-        for j in range(0,14):
-            landmarksPerToothKind[j] = np.loadtxt(paths.LANDMARK+'landmarks'+str(j+1)+'-'+str(i+1)+'.txt')
-        landmarks[i] = landmarksPerToothKind
-        
-    return landmarks
-    
-    
-def loadAllLandmarksOfTooth(Nb):
-    landmarksPerToothKind = np.zeros((14,80))
-    for j in range(0,14):
-        landmarksPerToothKind[j] = np.loadtxt(paths.LANDMARK+'landmarks'+str(j+1)+'-'+str(Nb)+'.txt')   
-    return landmarksPerToothKind
-    
 def createGreyLevelModel(toothNb, imgs):
+    # itbuffer[:,2] = img[itbuffer[:,1].astype(np.uint),itbuffer[:,0].astype(np.uint)]
+    gs = np.zeros(40,14)
     return 
-    
-    
-def getNormals(images, landmarks, length):
-    buffers = []
-    for idx,img in enumerate(images):
-        buffers.append(getNormalPoints(landmarks[idx],length,img))
-    buffers = np.asarray(buffers)
-    ints = np.asarray([buff[:,2::3] for buff in buffers])
-    ints2 = ints[:,0,:]
-    print ints2
+    for lm in range(0,40):
+        for person in range(0,14):
+            values = 
+            gs[lm,person] = calculateProfile(values)
+
         
 # Calculate the profiles of all the given intensities.        
 def calculateAllProfilesOfLandmark(intensities):
@@ -85,9 +64,7 @@ def main():
     print "Loading radiographs.\n"
     imgs = loadImages()
     print "Loading landmarks.\n"
-    landmarks = loadAllLandmarksOfTooth(1)
-    print "Calculating normals.\n"
-    getNormals(imgs, landmarks, 10)
+    landmarks = load_all_landmarks_for_tooth(1)
     
     
 

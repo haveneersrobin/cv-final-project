@@ -63,7 +63,7 @@ def main():
     YX, YY = Y.get_two_lists(integer=True)
 
     for i in range(Nb):
-        cv2.line(sobelcpy, (foundPointsX[i],foundPointsY[i]),(foundPointsX[(i+1) % Nb],foundPointsY[(i+1) % Nb]), cGreen, 1)
+        cv2.line(sobelcpy, (foundPointsX[i],foundPointsY[i]),(foundPointsX[(i+1) % Nb],foundPointsY[(i+1) % Nb]), cWhite, 1)
     for i in range(Nb):
         cv2.line(sobelcpy, (init_toothX[i],init_toothY[i]),(init_toothX[(i+1) % Nb],init_toothY[(i+1) % Nb]), cWhite, 1)   
     # for i in range(Nb):

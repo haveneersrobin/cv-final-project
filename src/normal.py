@@ -6,10 +6,12 @@ import fnmatch
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import math
+import paths
 from skimage import exposure, io, img_as_int, img_as_float, img_as_ubyte
 from scipy import signal
 from  scipy.ndimage import filters
 from scipy.ndimage import morphology
+from landmarks import *
 
 # Return a matrix containing the coordinates and values 
 # of the pixels on the line between P1 and P2.
@@ -74,10 +76,66 @@ def createLineIterator(P1, P2, img):
     itbuffer[:,2] = img[itbuffer[:,1].astype(np.uint),itbuffer[:,0].astype(np.uint)]
 
     return itbuffer
+    
+# Get a list of coordinates and values of pixels
+# on each side of the given landmark point.    
+def getNormalPoints(points, ptnNb, lgth, grayimg):
+
+#define variables
+    points = points.get_list()
+    points = np.reshape(points, (40, 2), order='C')
+    x = 0
+    y = 1
+    V = np.zeros(2)
+    Nb = len(points)
+    length = lgth*2
+    zipped = np.zeros(3*(length+1))
+    
+    #define vector points
+    V[x] = points[(ptnNb+1)%Nb,x] - points[(ptnNb-1)%Nb,x]
+    V[y] = points[(ptnNb+1)%Nb,y] - points[(ptnNb-1)%Nb,y]
+    V = V/np.linalg.norm(V)
+    Vt = V[x]
+    V[x] = -V[y]
+    V[y] = Vt
+
+    #define begin and end points
+    P1 = np.zeros(2)
+    P2 = np.zeros(2)
+    P0 = np.zeros(2)
+    P0[x] = points[ptnNb,x]
+    P0[y] = points[ptnNb,y]
+    P1[x] = points[ptnNb,x] + (V[x]*length)
+    P1[y] = points[ptnNb,y] + (V[y]*length)
+    P2[x] = points[ptnNb,x] - (V[x]*length)
+    P2[y] = points[ptnNb,y] - (V[y]*length)
+    
+    #construct buffers
+    itbuffer1 = createLineIterator(np.rint(P0).astype(int),np.rint(P1).astype(int),grayimg)
+    itbuffer2 = createLineIterator(np.rint(P0).astype(int),np.rint(P2).astype(int),grayimg) 
+
+    #reverse values
+    intensities1 = itbuffer1[:lgth+1,2]
+    intensities2 = itbuffer2[:lgth+1,2]     
+    xs1 = itbuffer1[:lgth+1,0]
+    ys1 = itbuffer1[:lgth+1,1]
+    xs2 = itbuffer2[:lgth+1,0]
+    ys2 = itbuffer2[:lgth+1,1]
+    xs2 = xs2[::-1]
+    ys2 = ys2[::-1]
+    intensities2 = intensities2[::-1]        
+    xs = np.append(xs2, xs1[1:])
+    ys = np.append(ys2, ys1[1:])
+    intensities = np.append(intensities2, intensities1[1:])
+    
+    #combine into one list
+    zipped = np.asarray([val for pair in zip(xs, ys, intensities) for val in pair])
+    return zipped    
+    
 
 # Get a list of coordinates and values of pixels 
 # on each side of all the landmark points.    
-def getNormalPoints(points, lgth, grayimg):
+def getAllNormalPoints(points, lgth, grayimg):
 
     #define variables
     points = points.get_list()
@@ -145,7 +203,7 @@ if __name__ == '__main__':
 
     k = 1 # mond
     j = 1 #tand
-    data = np.loadtxt(landmarkPath+'landmarks'+str(k)+'-'+str(j)+'.txt').astype(int)
+    data = np.loadtxt(paths.LANDMARK+'landmarks'+str(k)+'-'+str(j)+'.txt').astype(int)
     print data,'\n'
 
     objectArray = np.reshape(data, (2, 40), order='F')
@@ -154,81 +212,21 @@ if __name__ == '__main__':
     points = np.reshape(data, (40, 2), order='C')
     print "points", points,'\n'
 
-    img = cv2.imread(radioPath+'01.tif')    
-    gradimg = cv2.imread(sobelPath+'01SobelGauss.png')
-    #gradimg = cv2.cvtColor(gradimg, cv2.COLOR_RGB2GRAY)
-    print gradimg.shape
-    (h,w,_) = img.shape
-    img2 = cv2.resize(img, (w/3, h/3))
-    # cv2.imshow('',img2)
-    # cv2.waitKey(0)
+    img = cv2.imread(paths.RADIO+'01.tif')    
+    gradimg = cv2.imread(paths.SOBEL+'01SobelGauss.png')
+    gradimg = cv2.cvtColor(gradimg, cv2.COLOR_RGB2GRAY)
 
-    for i in range(len(points)):
-        cv2.line(img, (points[i,0],points[i,1]),(points[(i+1) % len(points),0],points[(i+1) % len(points),1]), cWhite, 2)
-    img2 = cv2.resize(img, (w/3, h/3))
-    cv2.imshow('',img2)
-    cv2.waitKey(0)
 
-    x = 0
-    y = 1
-    V = np.zeros(2)
-    Nb = len(points)
-    length = 20.
-    for idx in range(0,Nb):
+    p = getAllNormalPoints(Landmarks(data), 10, gradimg)
+    print p.shape
+    print p[0].shape
+    print p[0]
+    
+    p2 = getNormalPoints(Landmarks(data), 0, 10, gradimg)
+    print p2.shape
+    print p2
 
-        V[x] = points[(idx+1)%Nb,x] - points[(idx-1)%Nb,x]
-        V[y] = points[(idx+1)%Nb,y] - points[(idx-1)%Nb,y]
-        V = V/np.linalg.norm(V)
-        print "V", V
-        Vt = V[x]
-        V[x] = -V[y]
-        V[y] = Vt
 
-        P1 = np.zeros(2)
-        P2 = np.zeros(2)
-        P0 = np.zeros(2)
-        P0[x] = points[idx,x]
-        P0[y] = points[idx,y]
-        P1[x] = points[idx,x] + (V[x]*length)
-        P1[y] = points[idx,y] + (V[y]*length)
-        P2[x] = points[idx,x] - (V[x]*length)
-        P2[y] = points[idx,y] - (V[y]*length)
-        
-        grayimg = cv2.cvtColor(gradimg, cv2.COLOR_RGB2GRAY)
-        itbuffer1 = createLineIterator(np.rint(P0).astype(int),np.rint(P1).astype(int),grayimg)
-        itbuffer2 = createLineIterator(np.rint(P0).astype(int),np.rint(P2).astype(int),grayimg)        
-        intensities1 = itbuffer1[:,2]
-        intensities2 = itbuffer2[:,2]
-        med1 = signal.medfilt(intensities1, 5)
-        med2 = signal.medfilt(intensities2, 5)         
-        # plt.plot(med)
-        # plt.show()
-        
-        xs1 = itbuffer1[:11,0]
-        ys1 = itbuffer1[:11,1]
-        xs2 = itbuffer2[:11,0]
-        ys2 = itbuffer2[:11,1]
-        xs2 = xs2[::-1]
-        ys2 = ys2[::-1]
-        xs = np.append(xs2, xs1[1:])
-        ys = np.append(ys2, ys1[1:])
-        
-        cv2.line(gradimg,tuple(np.rint(P0).astype(int)),(xs[20],ys[20]),cBlue, 2)
-        cv2.line(gradimg,tuple(np.rint(P0).astype(int)),(xs[0],ys[0]),cGreen, 2)
-        
-        # print "P0", P0
-        # print "P1", P1
-        # print "P2", P2
-        # print "xs1", xs1
-        # print "xs2", xs2
-        # print "xs", xs
-        # print "ys1", ys1
-        # print "ys2", ys2
-        # print "ys", ys
-
-    #img2 = cv2.resize(gradimg, (w/3, h/3))
-    cv2.imshow('',gradimg[600:1400,1100:2000])
-    cv2.waitKey(0)
 
 
 
