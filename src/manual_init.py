@@ -44,7 +44,7 @@ def manual_init(model, norm, radiograph):
     cv2.destroyAllWindows()
 
     print current_tooth
-    return current_tooth
+    return Landmarks(current_tooth)
     
     
 def mouse(event, posx, posy, flags, image):

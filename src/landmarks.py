@@ -29,6 +29,7 @@ class Landmarks:
             else:
                 print "Invalid landmarks type"
                 print type(coordinates)
+                print coordinates
 
     def _open_landmarks(self, path):
         # Open landmarks and save as points if path is given
@@ -40,14 +41,16 @@ class Landmarks:
         # Returns [x1, y1, x2, y2 ...]
         return np.asarray(self.points, dtype=np.float64)
 
-    def get_two_lists(self):
+    def get_two_lists(self,integer=False):
         # Returns two lists
         # [x1, x2, ...]
         # [y1, y2, ...]
         x = self.points[0:][::2]
         y = self.points[1:][::2]
-
-        return np.asarray(x, dtype=np.float64),np.asarray(y, dtype=np.float64)
+        if not integer:
+            return np.asarray(x, dtype=np.float64),np.asarray(y, dtype=np.float64)
+        else:
+            return np.asarray(x, dtype=np.int32),np.asarray(y, dtype=np.int32)
 
     def get_matrix(self):
         # Returns [[x1, y2], [y1, y2], ...]

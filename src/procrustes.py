@@ -57,7 +57,7 @@ def alignSetOfShapes(landmark_list):
     print "Start aligning"
     counter = 1
     translated_lms = all_to_origin(landmark_list)
-    x0,_ = translated_lms[0].scale()
+    x0,norm = translated_lms[0].scale()
 
     result = []
 
@@ -73,7 +73,8 @@ def alignSetOfShapes(landmark_list):
             new_mean = findMeanShape(result)
         theta, s, _ = alignShapes(x0, new_mean)
         x0_new = applyTransformation(x0, new_mean, s, theta)
-        x0_new_scaled,_ = x0_new.scale()
+        x0_new_scaled,nrm = x0_new.scale()
+        norm *= nrm
 
         if np.linalg.norm(x0_new_scaled.get_list() - x0.get_list()) < 0.02:
             converged = True
@@ -81,7 +82,7 @@ def alignSetOfShapes(landmark_list):
             x0 = x0_new_scaled
         counter += 1
     print "Done"
-    return x0_new_scaled, result
+    return x0_new_scaled, result, norm
 
 
 def alignFitLandmarks(theta, s, t, newLms):
@@ -94,13 +95,13 @@ def alignFitLandmarks(theta, s, t, newLms):
     result = np.transpose(np.transpose(scaled) + np.transpose(t))
     zipped = [val for pair in zip(result[0], result[1]) for val in pair]
 
-    return Landmarks(zipped)
+    return Landmarks(np.asarray(zipped))
 
 def main():
     index = 0
     landmark_list = load_all_landmarks_for_tooth(1)
     #draw(landmark_list, "green")
-    mean, result = alignSetOfShapes(landmark_list)
+    mean, result, _ = alignSetOfShapes(landmark_list)
     #draw(result, "red", True)
     #alignFitLandmarks(landmark_list[1], landmark_list[2])
 

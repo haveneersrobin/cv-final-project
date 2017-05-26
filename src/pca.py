@@ -28,13 +28,13 @@ def pcaManual(landmarks):
         i+=1
 
     nbOfVals = i+1
-    print nbOfVals    
+    # print nbOfVals    
     return eigval[:nbOfVals], eigvecs[:,:nbOfVals]
 	
 def main():
 
     lm = load_all_landmarks_for_tooth(1)
-    mean, result = alignSetOfShapes(lm)
+    mean, result, _ = alignSetOfShapes(lm)
     vals, P = pcaManual(result)
 
 
