@@ -129,8 +129,8 @@ def getNormalPoints(points, ptnNb, lgth, grayimg):
     intensities = np.append(intensities2, intensities1[1:])
     
     #combine into one list
-    zipped = np.asarray([val for pair in zip(xs, ys, intensities) for val in pair])
-    return zipped    
+    zipped = np.asarray([val for pair in zip(xs, ys) for val in pair])
+    return zipped, intensities    
     
 
 # Get a list of coordinates and values of pixels 
