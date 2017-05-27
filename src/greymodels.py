@@ -32,9 +32,10 @@ def loadImages():
         images.append(to_grayscale(load_image(i)))
     return np.asarray(images)
     
-    
-def createGreyLevelModel(toothNb, lgth, imgs):
-    # itbuffer[:,2] = img[itbuffer[:,1].astype(np.uint),itbuffer[:,0].astype(np.uint)]
+
+# Create the landmark profiles and corresponding covariance matrices.    
+def createGreyLevelModel(toothNb, lgth):
+    imgs = loadImages()
     ys = np.zeros((40,14,lgth*2))    
     y_streeps = np.zeros((40,lgth*2))    
     vals = np.zeros((40,14,1+lgth*2))
@@ -61,7 +62,7 @@ def createGreyLevelModel(toothNb, lgth, imgs):
         
         # Calculate covariance of intensities around landmark lm.
         cov[lm] = calculateCovariance(y_streeps[lm],ys[lm])
-
+    return y_streeps, cov
 
 # Calculate covariance matrix of the landmark.        
 def calculateCovariance(y_streep, ys):
