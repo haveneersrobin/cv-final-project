@@ -62,10 +62,10 @@ def protocol1(ASM, meanShape, Y):
 # where lambda_i is the i'th eigenvalue.     
 def constrainB(b, vals):
     for idx, val in enumerate(vals):
-        if b[idx] > 2*np.sqrt(vals[idx]):
-            b[idx] = 2*np.sqrt(vals[idx])
-        elif b[idx] < -2*np.sqrt(vals[idx]):
-            b[idx] = -2*np.sqrt(vals[idx])
+        if b[idx] > 3*np.sqrt(vals[idx]):
+            b[idx] = 3*np.sqrt(vals[idx])
+        elif b[idx] < -3*np.sqrt(vals[idx]):
+            b[idx] = -3*np.sqrt(vals[idx])
     return b
 
 # Improve the current shape until convergence. 
@@ -76,18 +76,26 @@ def iterate(toothNb, initialPoints, meanShape, P, vals, img, maxIter):
     prevPoints = Landmarks(np.zeros(points.get_list().shape))
     it = 0
     
-    lenProfile = 7
-    lenSearch = 9
-    profiles, covariances = greymodels.createGreyLevelModel(toothNb, lenProfile)
-    
+    lenProfile = 3
+    lenSearch = 5
+    profiles, covariances = greymodels2.createGreyLevelModel(toothNb, lenProfile)
+     # max(abs(points.get_list()-prevPoints.get_list())) > 1 and 
     while( max(abs(points.get_list()-prevPoints.get_list())) > 1 and it < maxIter ):
         #Increment counter
         it+=1
         print "Iteration ",it
+        # raw_input('Press <ENTER> to continue')
         
         #Find next best points Y, from given points 'points'
-        # Y = findPoints1(img, toothNb, points, 3)  
+        # Y = findPoints1(img, toothNb, points, 5)  
         Y = findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfile)
+        # YX, YY = Y.get_two_lists(integer=True)
+        # Nb = len(Y.get_list())/2
+        # im2 = img.copy()
+        # for i in range(Nb):
+            # cv2.line(im2, (YX[i],YY[i]),(YX[(i+1) % Nb],YY[(i+1) % Nb]), (255,255,255), 1) 
+        # cv2.imshow('',im2)
+        # cv2.waitKey(0)          
         
         #Find best theta, s, t and b to match Y
         theta, s, t, b = protocol1(P, meanShape, Y)
@@ -108,7 +116,7 @@ def iterate(toothNb, initialPoints, meanShape, P, vals, img, maxIter):
         Nb = len(points.get_list())/2
         im2 = img.copy()
         for i in range(Nb):
-            cv2.line(im2, (YX[i],YY[i]),(YX[(i+1) % Nb],YY[(i+1) % Nb]), (255,255,255), 1) 
+            cv2.line(im2, (YX[i],YY[i]),(YX[(i+1) % Nb],YY[(i+1) % Nb]), (255,0,255), 1) 
         cv2.imshow('',im2)
         cv2.waitKey(0)  
         
@@ -139,26 +147,37 @@ def findPoints1(img, toothNb, points, len):
 def findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfile):
     
     gray_img = applySobel(img)
+    # gray_img = to_grayscale(img)
+    
+    pX,pY = points.get_two_lists()
 
     itbuffer = getAllNormalPoints(points, lenSearch, gray_img)
     xs = itbuffer[:,0::3]
     ys = itbuffer[:,1::3]
     intensities = itbuffer[:,2::3]
-    im2 = img.copy()
-    im2[ys.astype(np.uint),xs.astype(np.uint)] = (255,255,255)
-    cv2.imshow('',im2)
-    cv2.waitKey(0)     
+    # im2 = img.copy()
+    # im2[ys.astype(np.uint),xs.astype(np.uint)] = (255,255,255)
+    # cv2.imshow('',im2)
+    # cv2.waitKey(0)     
     
     newXs = np.zeros(points.get_list().shape[0]/2)
     newYs = np.zeros(points.get_list().shape[0]/2)
 
     for idx, searchProfile in enumerate(intensities):
-        normalizedSearchProfiles = greymodels.calculateProfile(searchProfile)   
-        subsequences = np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2], normalizedSearchProfiles[lenProfile*2-1:])).T
+        normalizedSearchProfiles = greymodels2.calculateProfile(searchProfile)   
+        subsequences = np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2+1], normalizedSearchProfiles[lenProfile*2:])).T #np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2+1], normalizedSearchProfiles[lenProfile*2:])).T voor greymodels2
+        #np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2], normalizedSearchProfiles[lenProfile*2-1:])).T voor greymodels
+        # print "Search Profile=\n",normalizedSearchProfiles
         bestFit, error = findBestFit(profiles[idx],subsequences, covariances[idx])
-        print idx,"Error=",error
-        newXs[idx] = xs[idx][bestFit+lenSearch]
-        newYs[idx] = ys[idx][bestFit+lenSearch]
+        # print idx,"Bestfit=",bestFit
+        # print idx,"Error=",error
+        # print "xs=",xs[idx]
+        # print "ys=",ys[idx]
+        newXs[idx] = xs[idx][::-1][bestFit+lenProfile+1]
+        # print "bestX=",newXs[idx]
+        newYs[idx] = ys[idx][::-1][bestFit+lenProfile+1]
+        # print "bestY=",newYs[idx]
+        # raw_input('Press <ENTER> to continue')
         
     return Landmarks(np.asarray([val for pair in zip(newXs, newYs) for val in pair]))
     
@@ -166,14 +185,20 @@ def findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfi
 # Determine which subsequence is most similar to the profile.    
 def findBestFit(profile, subsequences, covariance):
 
+    print "Model Profile=\n",profile  
+
     minSeq = -1
     min = np.inf
     for seqNb, sequence in enumerate(subsequences):
+        print "Subsequence=\n",seqNb,sequence
         diff = sequence-profile
+        print "Difference=",diff
         C_inv = np.linalg.inv(covariance)
         f = np.dot(np.dot(diff.T,C_inv),diff)
-        # f = np.dot(diff.T,diff)
+        # f = np.dot(diff.T, diff)
+        print "f=",f
         (minSeq,min) = (seqNb,f) if f < min else (minSeq,min)
+        # raw_input('Press <ENTER> to continue')  
 
     return minSeq, min
     

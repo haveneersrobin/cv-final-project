@@ -32,10 +32,22 @@ def loadImages():
         images.append(to_grayscale(load_image(i)))
     return np.asarray(images)
     
+def loadImages2():
+    images = []
+    for i in xrange(1,15):
+        print "Loading image " + str(i)
+        if os.path.isfile(paths.SOBEL+"sobel"+str(i)+".png"):
+            sobel = cv2.imread(paths.SOBEL+"sobel"+str(i)+".png")
+        else:
+            sobel = applySobel(load_image(i))
+            cv2.imwrite(paths.SOBEL+"sobel"+str(i)+".png",sobel)
+        images.append(to_grayscale(sobel))
+    return np.asarray(images)    
+    
 
 # Create the landmark profiles and corresponding covariance matrices.    
 def createGreyLevelModel(toothNb, lgth):
-    imgs = loadImages()
+    imgs = loadImages2()
     ys = np.zeros((40,14,lgth*2))    
     y_streeps = np.zeros((40,lgth*2))    
     vals = np.zeros((40,14,1+lgth*2))
@@ -52,8 +64,10 @@ def createGreyLevelModel(toothNb, lgth):
                 
             # Get the coordinates and values of the points on the normal on the given point lm.
             coords, values = getNormalPoints(landmarks_list[person], lm, lgth, imgs[person])
+            values = values.astype(np.float64)
             vals[lm,person] = values
-            
+            print "values=",values
+            print "coordinates=",coords
             # Calculate the grey level profile for the landmark point and person.
             ys[lm,person] = calculateProfile(values)
         
@@ -89,9 +103,11 @@ def calculateMeanProfileOfLandmark(intensities):
 def calculateProfile(values):
 
     derivates = calculateDerivates(values)
+    print "derivates=",derivates
     sum = np.sum(np.absolute(derivates))
+    print "sum=",sum
     y = derivates/sum
-    
+    print "profile y=",y
     return y
 
 

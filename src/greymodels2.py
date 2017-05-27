@@ -58,6 +58,7 @@ def createGreyLevelModel(toothNb, lgth):
                 
             # Get the coordinates and values of the points on the normal on the given point lm.
             coords, values = getNormalPoints(landmarks_list[person], lm, lgth, imgs[person])
+            values = values.astype(np.float64)
             vals[lm,person] = values
             
             # Calculate the grey level profile for the landmark point and person.
@@ -74,9 +75,9 @@ def createGreyLevelModel(toothNb, lgth):
 def calculateCovariance(ys):
     # print "ys=",ys
     # print "ys.shape=",ys.shape
-    C = np.cov(ys.T)
-    # print "C=",C
-    # print "C.shape=",C.shape
+    C = np.cov(ys, rowvar=0)
+    print "C=",C
+    print "C.shape=",C.shape
     
     return C
     

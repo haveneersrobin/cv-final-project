@@ -24,7 +24,7 @@ def main():
     # Setup variables.
     tooth_to_fit = 2
     person_to_fit = 1
-    maxIter = 5
+    maxIter = 20
     
     cWhite = (255,255,255)
     cBlue = (255,0,0)
@@ -33,11 +33,18 @@ def main():
     # Read landmarks for tooth.
     print "Reading landmarks."
     landmark_list = load_all_landmarks_for_tooth(tooth_to_fit)
+    original_lms = landmark_list[person_to_fit-1]
     
     # Read image.
     print "Reading image."
     image = load_image(person_to_fit)
     
+    im2 = image.copy()
+    oX, oY = original_lms.get_two_lists(integer=True)
+    Nb = len(original_lms.get_list())/2
+    for i in range(Nb):
+        cv2.line(im2, (oX[i],oY[i]),(oX[(i+1) % Nb],oY[(i+1) % Nb]), cGreen, 1)
+        
     # Build ASM.
     print "Building ASM model."
     meanShape, ASM_P, eigenvalues, norm = buildASM(landmark_list)
@@ -49,6 +56,7 @@ def main():
     print "Scaling radiograph."
     ratio, new_dimensions = scale_radiograph(image, 800)
     image = cv2.resize(image, (new_dimensions[1], new_dimensions[0]), interpolation = cv2.INTER_AREA)      
+    im2 = cv2.resize(im2, (new_dimensions[1], new_dimensions[0]), interpolation = cv2.INTER_AREA)
     
     # Iterate until convergence.
     print "Starting iterations."
@@ -65,12 +73,12 @@ def main():
     YX, YY = Y.get_two_lists(integer=True)
 
     for i in range(Nb):
-        cv2.line(image, (foundPointsX[i],foundPointsY[i]),(foundPointsX[(i+1) % Nb],foundPointsY[(i+1) % Nb]), cWhite, 1)
-    for i in range(Nb):
-        cv2.line(image, (init_toothX[i],init_toothY[i]),(init_toothX[(i+1) % Nb],init_toothY[(i+1) % Nb]), cWhite, 1)   
+        cv2.line(im2, (foundPointsX[i],foundPointsY[i]),(foundPointsX[(i+1) % Nb],foundPointsY[(i+1) % Nb]), cBlue, 1)
+    # for i in range(Nb):
+        # cv2.line(im2, (init_toothX[i],init_toothY[i]),(init_toothX[(i+1) % Nb],init_toothY[(i+1) % Nb]), cWhite, 1)   
     # for i in range(Nb):
         # cv2.line(image, (YX[i],YY[i]),(YX[(i+1) % Nb],YY[(i+1) % Nb]), cBlue, 1) 
-    cv2.imshow('',image)
+    cv2.imshow('',im2)
     cv2.waitKey(0)             
   
 if __name__ == '__main__':
