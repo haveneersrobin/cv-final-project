@@ -29,17 +29,23 @@ from radiograph import *
 def loadImages():
     images = []
     for i in xrange(1,15):
-        images.append(to_grayscale(load_image(i)))
+        print "Loading image " + str(i)
+        if os.path.isfile(paths.SOBEL+"sobel"+str(i)+".png"):
+            sobel = cv2.imread(paths.SOBEL+"sobel"+str(i)+".png")
+        else:
+            sobel = applySobel(load_image(i))
+            cv2.imwrite(paths.SOBEL+"sobel"+str(i)+".png",sobel)
+        images.append(to_grayscale(sobel))
     return np.asarray(images)
     
 
 # Create the landmark profiles and corresponding covariance matrices.    
 def createGreyLevelModel(toothNb, lgth):
     imgs = loadImages()
-    ys = np.zeros((40,14,lgth*2))    
-    y_streeps = np.zeros((40,lgth*2))    
+    ys = np.zeros((40,14,lgth*2+1))    
+    y_streeps = np.zeros((40,lgth*2+1))    
     vals = np.zeros((40,14,1+lgth*2))
-    cov = np.zeros((40,lgth*2,lgth*2))
+    cov = np.zeros((40,lgth*2+1,lgth*2+1))
     
     # Load all landmarks of a single tooth, of all persons.
     landmarks_list = load_all_landmarks_for_tooth(toothNb)
@@ -58,18 +64,19 @@ def createGreyLevelModel(toothNb, lgth):
             ys[lm,person] = calculateProfile(values)
         
         # Calculate the mean profile of the given point lm.
-        y_streeps[lm] = calculateMeanProfileOfLandmark(vals[lm])
+        y_streeps[lm] = calculateMeanProfileOfLandmark(ys[lm])
         
         # Calculate covariance of intensities around landmark lm.
-        cov[lm] = calculateCovariance(y_streeps[lm],ys[lm])
+        cov[lm] = calculateCovariance(ys[lm])
     return y_streeps, cov
 
 # Calculate covariance matrix of the landmark.        
-def calculateCovariance(y_streep, ys):
-
-    diff = ys-y_streep
-    einsum = np.einsum('...i,...j',diff.copy(),diff.copy())
-    C = np.mean(einsum, axis=0)
+def calculateCovariance(ys):
+    # print "ys=",ys
+    # print "ys.shape=",ys.shape
+    C = np.cov(ys.T)
+    # print "C=",C
+    # print "C.shape=",C.shape
     
     return C
     
@@ -77,21 +84,19 @@ def calculateCovariance(y_streep, ys):
 # Calculate the profiles of all the given intensities.        
 def calculateMeanProfileOfLandmark(intensities):
 
-    derivs = []
-    for idx in range(0,14):
-        ints = intensities[idx]
-        derivs.append(calculateDerivates(ints))
-    y = np.mean(np.asarray(derivs),axis=0)
+    # print intensities
+    y = np.mean(np.asarray(intensities),axis=0)
+    # print "y1=",y
     
     return y    
         
 # Calculate the grey level of the given values.
 def calculateProfile(values):
 
-    derivates = calculateDerivates(values)
-    sum = np.sum(np.absolute(derivates))
-    y = derivates/sum
-    
+    # print "values=",values
+    sum = np.sum(np.absolute(values))
+    y = values/sum
+    # print "y2=",y
     return y
 
 

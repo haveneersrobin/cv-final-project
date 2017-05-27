@@ -22,9 +22,9 @@ from radiograph import *
 def main():
     print "Setup variables."
     # Setup variables.
-    tooth_to_fit = 1
+    tooth_to_fit = 2
     person_to_fit = 1
-    maxIter = 100
+    maxIter = 5
     
     cWhite = (255,255,255)
     cBlue = (255,0,0)
@@ -52,7 +52,9 @@ def main():
     
     # Iterate until convergence.
     print "Starting iterations."
-    Y, foundPoints = iterate(init_tooth, meanShape, ASM_P, eigenvalues, image, maxIter)
+    Y, foundPoints = iterate(tooth_to_fit, init_tooth, meanShape, ASM_P, eigenvalues, image, maxIter)
+    
+    
     
     # Plot found points.
     sobelcpy = applySobel(image)
@@ -63,12 +65,12 @@ def main():
     YX, YY = Y.get_two_lists(integer=True)
 
     for i in range(Nb):
-        cv2.line(sobelcpy, (foundPointsX[i],foundPointsY[i]),(foundPointsX[(i+1) % Nb],foundPointsY[(i+1) % Nb]), cWhite, 1)
+        cv2.line(image, (foundPointsX[i],foundPointsY[i]),(foundPointsX[(i+1) % Nb],foundPointsY[(i+1) % Nb]), cWhite, 1)
     for i in range(Nb):
-        cv2.line(sobelcpy, (init_toothX[i],init_toothY[i]),(init_toothX[(i+1) % Nb],init_toothY[(i+1) % Nb]), cWhite, 1)   
+        cv2.line(image, (init_toothX[i],init_toothY[i]),(init_toothX[(i+1) % Nb],init_toothY[(i+1) % Nb]), cWhite, 1)   
     # for i in range(Nb):
         # cv2.line(image, (YX[i],YY[i]),(YX[(i+1) % Nb],YY[(i+1) % Nb]), cBlue, 1) 
-    cv2.imshow('',sobelcpy)
+    cv2.imshow('',image)
     cv2.waitKey(0)             
   
 if __name__ == '__main__':
