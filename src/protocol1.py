@@ -72,13 +72,13 @@ def constrainB(b, vals):
 #   - initialPoints is a Landmarks object.
 def iterate(toothNb, initialPoints, meanShape, P, vals, img, maxIter):
     
-    points = initialPoints
+    Y = points = initialPoints
     prevPoints = Landmarks(np.zeros(points.get_list().shape))
     it = 0
     
     lenProfile = 3
     lenSearch = 5
-    profiles, covariances = greymodels2.createGreyLevelModel(toothNb, lenProfile)
+    profiles, covariances = greymodels.createGreyLevelModel(toothNb, lenProfile)
      # max(abs(points.get_list()-prevPoints.get_list())) > 1 and 
     while( max(abs(points.get_list()-prevPoints.get_list())) > 1 and it < maxIter ):
         #Increment counter
@@ -87,8 +87,8 @@ def iterate(toothNb, initialPoints, meanShape, P, vals, img, maxIter):
         # raw_input('Press <ENTER> to continue')
         
         #Find next best points Y, from given points 'points'
-        # Y = findPoints1(img, toothNb, points, 5)  
-        Y = findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfile)
+        Y = findPoints1(img, toothNb, points, 5)  
+        # Y = findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfile)
         # YX, YY = Y.get_two_lists(integer=True)
         # Nb = len(Y.get_list())/2
         # im2 = img.copy()
@@ -146,8 +146,8 @@ def findPoints1(img, toothNb, points, len):
 #Find best neighbour points according to grey level model.    
 def findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfile):
     
-    gray_img = applySobel(img)
-    # gray_img = to_grayscale(img)
+    # gray_img = applySobel(img)
+    gray_img = to_grayscale(img)
     
     pX,pY = points.get_two_lists()
 
@@ -164,18 +164,18 @@ def findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfi
     newYs = np.zeros(points.get_list().shape[0]/2)
 
     for idx, searchProfile in enumerate(intensities):
-        normalizedSearchProfiles = greymodels2.calculateProfile(searchProfile)   
-        subsequences = np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2+1], normalizedSearchProfiles[lenProfile*2:])).T #np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2+1], normalizedSearchProfiles[lenProfile*2:])).T voor greymodels2
+        normalizedSearchProfiles = greymodels.calculateProfile(searchProfile)   
+        subsequences = np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2], normalizedSearchProfiles[lenProfile*-1:])).T #np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2+1], normalizedSearchProfiles[lenProfile*2:])).T voor greymodels2
         #np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2], normalizedSearchProfiles[lenProfile*2-1:])).T voor greymodels
         # print "Search Profile=\n",normalizedSearchProfiles
         bestFit, error = findBestFit(profiles[idx],subsequences, covariances[idx])
-        # print idx,"Bestfit=",bestFit
+        print idx,"Bestfit=",bestFit
         # print idx,"Error=",error
         # print "xs=",xs[idx]
         # print "ys=",ys[idx]
-        newXs[idx] = xs[idx][::-1][bestFit+lenProfile+1]
+        newXs[idx] = xs[idx][bestFit+lenProfile+1]
         # print "bestX=",newXs[idx]
-        newYs[idx] = ys[idx][::-1][bestFit+lenProfile+1]
+        newYs[idx] = ys[idx][bestFit+lenProfile+1]
         # print "bestY=",newYs[idx]
         # raw_input('Press <ENTER> to continue')
         
@@ -190,13 +190,13 @@ def findBestFit(profile, subsequences, covariance):
     minSeq = -1
     min = np.inf
     for seqNb, sequence in enumerate(subsequences):
-        print "Subsequence=\n",seqNb,sequence
+        # print "Subsequence=\n",seqNb,sequence
         diff = sequence-profile
-        print "Difference=",diff
+        # print "Difference=",diff
         C_inv = np.linalg.inv(covariance)
         f = np.dot(np.dot(diff.T,C_inv),diff)
         # f = np.dot(diff.T, diff)
-        print "f=",f
+        # print "f=",f
         (minSeq,min) = (seqNb,f) if f < min else (minSeq,min)
         # raw_input('Press <ENTER> to continue')  
 

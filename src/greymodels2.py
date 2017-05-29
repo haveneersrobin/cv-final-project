@@ -68,18 +68,23 @@ def createGreyLevelModel(toothNb, lgth):
         y_streeps[lm] = calculateMeanProfileOfLandmark(ys[lm])
         
         # Calculate covariance of intensities around landmark lm.
-        cov[lm] = calculateCovariance(ys[lm])
+        cov[lm] = calculateCovariance(y_streeps[lm], ys[lm])
     return y_streeps, cov
 
 # Calculate covariance matrix of the landmark.        
-def calculateCovariance(ys):
+def calculateCovariance(y_streep, ys):
     # print "ys=",ys
     # print "ys.shape=",ys.shape
-    C = np.cov(ys, rowvar=0)
+    diff = ys - y_streep
+    C = np.cov(diff, rowvar=0)
     print "C=",C
     print "C.shape=",C.shape
-    
-    return C
+    einsum = np.einsum('...i,...j',diff.copy(),diff.copy())
+    C2 = np.mean(einsum, axis=0)
+    print "C2=",C2
+    print "C2.shape=",C2.shape  
+    print "C-C2=",C-C2
+    return C2
     
                 
 # Calculate the profiles of all the given intensities.        
