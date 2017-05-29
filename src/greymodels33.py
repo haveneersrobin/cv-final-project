@@ -17,8 +17,7 @@ from debug import *
 from normal import *
 from landmarks import *
 from radiograph import *
-import greymodels2
-import greymodels33
+import greymodels3
 
 """
 
@@ -31,114 +30,86 @@ import greymodels33
 def loadImages():
     images = []
     for i in xrange(1,15):
-        images.append(to_grayscale(load_image(i)))
+        print "Loading image " + str(i)
+        if os.path.isfile(paths.SOBEL+"sobel"+str(i)+".png"):
+            sobel = to_grayscale(cv2.imread(paths.SOBEL+"sobel"+str(i)+".png"))
+        else:
+            sobel = applySobel(load_image(i))
+            cv2.imwrite(paths.SOBEL+"sobel"+str(i)+".png",sobel)
+        images.append(sobel)
     return np.asarray(images)
     
 def loadImages2():
     images = []
     for i in xrange(1,15):
-        print "Loading image " + str(i)
-        if os.path.isfile(paths.SOBEL+"sobel"+str(i)+".png"):
-            sobel = cv2.imread(paths.SOBEL+"sobel"+str(i)+".png")
-        else:
-            sobel = applySobel(load_image(i))
-            cv2.imwrite(paths.SOBEL+"sobel"+str(i)+".png",sobel)
-        images.append(to_grayscale(sobel))
+        images.append(to_grayscale(load_image(i)))
     return np.asarray(images)    
     
 
 # Create the landmark profiles and corresponding covariance matrices.    
 def createGreyLevelModel(toothNb, lgth):
-    imgs = loadImages()
-    ys = np.zeros((40,14,lgth*2))    
-    y_streeps = np.zeros((40,lgth*2))    
+    imgs = loadImages2()
+    gimgs = loadImages()
+    
+    y_streeps = [] 
     vals = np.zeros((40,14,1+lgth*2))
-    cov = np.zeros((40,lgth*2,lgth*2))
+    cov = []
     
     # Load all landmarks of a single tooth, of all persons.
     landmarks_list = load_all_landmarks_for_tooth(toothNb)
     
     # Iterate over all 40 landmarks.
     for lm in range(0,40):
-    
+        ys = []
         # Iterate over all persons.
         for person in range(0,14):
                 
             # Get the coordinates and values of the points on the normal on the given point lm.
             coords, values = getNormalPoints(landmarks_list[person], lm, lgth, imgs[person])
+            _, gradvalues = getNormalPoints(landmarks_list[person], lm, lgth, gimgs[person])
             values = values.astype(np.float64)
             vals[lm,person] = values
-            # print "values=",values
-            # print "coordinates=",coords
             
             # Calculate the grey level profile for the landmark point and person.
-            ys[lm,person] = calculateProfile(values)
-       
+            ys.append(calculateProfile(values, gradvalues))
+        
         # Calculate the mean profile of the given point lm.
-        y_streeps[lm] = calculateMeanProfileOfLandmark(vals[lm])
+        y_streeps.append(calculateMeanProfileOfLandmark(ys))
         
         # Calculate covariance of intensities around landmark lm.
-        cov[lm] = calculateCovariance(y_streeps[lm],ys[lm])
+        cov.append(calculateCovariance(ys))
+        
     return y_streeps, cov
 
 # Calculate covariance matrix of the landmark.        
-def calculateCovariance(y_streep, ys):
+def calculateCovariance(ys):
 
-
-    diff = ys-y_streep
-    einsum = np.einsum('...i,...j',diff.copy(),diff.copy())
-    C = np.mean(einsum, axis=0)
-    
-    # s = np.zeros((20,20))
-    
-    # for i in range(0,14):
-        # d = np.dot(np.asarray(diff[i]).reshape(20,1),np.asarray(diff[i]).reshape(1,20))
-        # print "d=",d.shape
-        # s += d
-    
-    # s = s/14
-    
-    # print "C=",C
-    # print "s=",s
-    # print "C-s=",C-s
-    
-    return C
+    return (np.cov(np.array(ys), rowvar=0))
     
                 
 # Calculate the profiles of all the given intensities.        
 def calculateMeanProfileOfLandmark(intensities):
 
-    derivs = []
-    for idx in range(0,14):
-        ints = intensities[idx]
-        derivs.append(calculateDerivates(ints))
-    y = np.mean(np.asarray(derivs),axis=0)
-    
-    return y    
+    # print intensities
+    return (np.mean(np.array(intensities), axis=0))
+    # print "y1=",y
+        
         
 # Calculate the grey level of the given values.
-def calculateProfile(values):
+def calculateProfile(values,grads):
 
-    derivates = calculateDerivates(values) 
-    # plt.figure(1)
-    # plt.subplot(211)
-    # plt.title('Values')
-    # plt.plot(values)
-    
-    # plt.subplot(212)
-    # plt.title('Derivatives')
-    # plt.plot(derivates)
-    # plt.show()     
-    sum = np.sum(np.absolute(derivates))
-    y = derivates/sum
-    return y
+    # print "values=",values
+    div = max(sum([math.fabs(v) for v in values]), 1)
+    samples = [float(g)/div for g in grads]
+    # print "y2=",y
+    return samples
 
 
 # Calculate the derivate grey levels.    
 def calculateDerivates(values):
 
     values_shift = values[1:]
-    values = values[:-1]
+    values = values[:1]
     derivates = values_shift - values
     
     return derivates
@@ -146,24 +117,17 @@ def calculateDerivates(values):
     
 def main():
 
-    lgth = 10
+    k = 10
     toothNb = 1
 
-    profiles, covariances = createGreyLevelModel(toothNb, lgth)
-    profiles2, covariances2 = greymodels2.createGreyLevelModel(toothNb, lgth)
-    profiles3, covariances3 = greymodels33.createGreyLevelModel(toothNb, lgth)
     
+    profiles, covariances = createGreyLevelModel(toothNb, k)
+    print len(profiles)
+    print len(covariances)
     print profiles[0]
-    print profiles2[0]
-    print profiles3[0]
-    
-    print covariances[0][0]
-    print covariances2[0][0]
-    print covariances3[0][0]
-    
-    # print profiles.shape
-    # print covariances.shape
+    print covariances[0]
     
 
 if __name__ == '__main__':
     main()
+

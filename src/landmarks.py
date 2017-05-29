@@ -103,6 +103,18 @@ def load_all_landmarks_for_tooth(tooth):
         landmark_list.append(Landmarks(path))
     return landmark_list
 
+# Open landmarks for given tooth for all persons. Returns list of landmarks of one tooth for all persons.
+def load_all_landmarks_for_tooth_except_test(tooth, test):
+    print "Opening all landmarks of tooth " + str(tooth) + "."
+    print "Opening person",
+    landmark_list = []
+    for i in range(1, 15):
+        if not test == i:
+            print str(i) + "...",
+            path = os.path.join(paths.LANDMARK, 'landmarks'+str(i)+'-'+str(tooth)+'.txt')
+            landmark_list.append(Landmarks(path))
+    return landmark_list    
+    
 # Load all landmarks for one person. Return a list containg 8 landmark objects.
 def load_landmarks_for_person(person):
     print "Opening all landmarks for person " + str(person) + "."

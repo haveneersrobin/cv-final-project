@@ -10,15 +10,20 @@ def draw(shapes, color = 'blue', originAtZero = False):
     if isinstance(shapes, collections.Iterable):
         for shape in shapes:
             x,y = shape.get_two_lists()
-            plt.scatter(x, y, color=color)
+            x = np.append(x, x[0])
+            y = np.append(y, y[0])
+            plt.plot(x, y, linewidth=.5, color=color)
     else:
         x,y = shapes.get_two_lists()
-        plt.scatter(x, y, color=color)
+        x = np.append(x, x[0])
+        y = np.append(y, y[0])
+        plt.plot(x, y, linewidth=.5, color=color)
     plt.axis('equal')
     plt.gca().invert_yaxis()
-    plt.grid(True, which='both')
+    # plt.axis('off')
+    # plt.grid(True, which='both')
     if originAtZero:
-        plt.axhline(y=0, color='r')
-        plt.axvline(x=0, color='r')
-        plt.scatter(0, 0)
+        plt.axhline(y=0, color='b', linewidth = .5)
+        plt.axvline(x=0, color='b', linewidth = .5)
+        # plt.scatter(0, 0)
     plt.show()

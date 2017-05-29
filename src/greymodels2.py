@@ -77,13 +77,13 @@ def calculateCovariance(y_streep, ys):
     # print "ys.shape=",ys.shape
     diff = ys - y_streep
     C = np.cov(diff, rowvar=0)
-    print "C=",C
-    print "C.shape=",C.shape
+    # print "C=",C
+    # print "C.shape=",C.shape
     einsum = np.einsum('...i,...j',diff.copy(),diff.copy())
     C2 = np.mean(einsum, axis=0)
-    print "C2=",C2
-    print "C2.shape=",C2.shape  
-    print "C-C2=",C-C2
+    # print "C2=",C2
+    # print "C2.shape=",C2.shape  
+    # print "C-C2=",C-C2
     return C2
     
                 
