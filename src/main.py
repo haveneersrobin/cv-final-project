@@ -174,11 +174,7 @@ def meanshapevariance():
     ev6[2] = eigenvalues[2]*10
     shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev6))) 
     
-    draw(shapes)    
-    
-    
-    
-    shapes = [Landmarks(meanShape.get_list()+np.dot(ASM_P,eigenvalues))]
+    # draw(shapes)        
     
     ev1 = eigenvalues.copy()
     ev1[1] = eigenvalues[1]*-10
@@ -199,10 +195,7 @@ def meanshapevariance():
     ev6[1] = eigenvalues[1]*10
     shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev6))) 
     
-    draw(shapes)
-    
-    
-    shapes = [Landmarks(meanShape.get_list()+np.dot(ASM_P,eigenvalues))]
+    # draw(shapes)      
     
     ev1 = eigenvalues.copy()
     ev1[0] = eigenvalues[0]*-10
@@ -223,8 +216,58 @@ def meanshapevariance():
     ev6[0] = eigenvalues[0]*10
     shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev6))) 
     
-    draw(shapes)    
     
+    mx,my = meanShape.get_two_lists()
+    mx = np.append(mx, mx[0])
+    my = np.append(my, my[0])
+    
+    # draw(shapes)    
+    fig = plt.figure()
+    
+    s1 = fig.add_subplot(131)
+    s1.set_title('Mode 1')
+    
+    for i in range(9,13):
+        x,y = shapes[i].get_two_lists()
+        x = np.append(x, x[0])
+        y = np.append(y, y[0])
+        s1.plot(x, y, linewidth=.5, color='r') 
+        
+    s1.plot(mx, my, linewidth=1, color='b')    
+    plt.gca().invert_yaxis()
+    plt.axis('equal')
+    # plt.axis('off')
+
+    s2 = fig.add_subplot(132)
+    s2.set_title('Mode 2')
+    
+    for i in range(5,9):
+        x,y = shapes[i].get_two_lists()
+        x = np.append(x, x[0])
+        y = np.append(y, y[0])
+        s2.plot(x, y, linewidth=.5, color='r') 
+
+    s2.plot(mx, my, linewidth=1, color='b')
+    plt.gca().invert_yaxis()
+    plt.axis('equal')
+    # plt.axis('off')
+
+    s3 = fig.add_subplot(133)
+    s3.set_title('Mode 3')
+    
+    for i in range(1,5):
+        x,y = shapes[i].get_two_lists()
+        x = np.append(x, x[0])
+        y = np.append(y, y[0])
+        s3.plot(x, y, linewidth=.5, color='r')   
+    
+    s3.plot(mx, my, linewidth=1, color='b')
+    plt.gca().invert_yaxis()
+    plt.axis('equal')
+    # plt.axis('off')
+    
+    # plt.title('Primary modes variation')
+    plt.show()
     
 def validateResults(allFoundPoints, originalLms):
 

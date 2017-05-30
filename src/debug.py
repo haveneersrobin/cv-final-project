@@ -21,9 +21,9 @@ def draw(shapes, color = 'blue', originAtZero = False):
     plt.axis('equal')
     plt.gca().invert_yaxis()
     # plt.axis('off')
-    # plt.grid(True, which='both')
+    plt.grid(True, which='both')
     if originAtZero:
         plt.axhline(y=0, color='b', linewidth = .5)
         plt.axvline(x=0, color='b', linewidth = .5)
-        # plt.scatter(0, 0)
+        plt.scatter(0, 0)
     plt.show()
