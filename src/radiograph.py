@@ -17,7 +17,22 @@ from scipy.ndimage import morphology
 # Returns the radiograph for the given person
 def load_image(person):
     string = "%02d" % (person)
-    return cv2.imread(paths.RADIO+string+'.tif')
+    if person < 15:
+        return cv2.imread(paths.RADIO+string+'.tif')
+    else:
+        return cv2.imread(paths.EXTRA+string+'.tif')
+
+# Returns a list of paths with all images.
+def load_all_images(exception=-1):
+    result = []
+    for i in range(1, 15):
+        if (i==exception):
+            continue
+        else:
+            string = "%02d" % (i)
+            result.append(cv2.imread(paths.RADIO+string+'.tif'))
+    return result
+
 
 # Takes an image and a desired height as input.
 # Returns:
@@ -26,66 +41,69 @@ def load_image(person):
 def scale_radiograph(image, desired_height):
     r = float(desired_height) / image.shape[0]
     dim = (desired_height, int(image.shape[1] * r))
+    resized = cv2.resize(image, (dim[1], dim[0]), interpolation = cv2.INTER_AREA)
 
-    return r, dim
-    
+    return r, dim, resized
+
 # Convert an RGB image to grayscale.
 def to_grayscale(image):
     return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        
-# Apply sobel edge detector.    
+
+# Apply sobel edge detector.
 def applySobel(img):
 
     img = processImage(img)
-    
+
     sobelx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3)
     sobely = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=3)
     abs_grad_x = cv2.convertScaleAbs(sobelx)
     abs_grad_y = cv2.convertScaleAbs(sobely)
     sobel = cv2.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0)
-    
+
     return sobel
-    
-# Process the image.    
+
+# Process the image.
 def processImage(img):
 
     whiteHatParam = 350
     blackHatParam = 90
-    
+
     img = to_grayscale(img)
-    img = medianfilter(img,9)    
+    img = medianfilter(img,9)
     whiteHat = whitehat(img,whiteHatParam)
     blackHat = blackhat(img,blackHatParam)
-    img = hatfilter(img, whiteHat, blackHat) 
+    img = hatfilter(img, whiteHat, blackHat)
     img = cv2.equalizeHist(img)
     img = gaussian(img,11)
-    
+
     return img
 
-# Apply median filter.    
+# Apply median filter.
 def medianfilter(image, size=5):
     return filters.median_filter(image,size)
 
-# Calculate black hat.   
+# Calculate black hat.
 def blackhat(image, size=50):
     return morphology.black_tophat(image, size)
 
-# Calculate white hat.    
+# Calculate white hat.
 def whitehat(image, size=200):
     return morphology.white_tophat(image, size)
 
-# Apply hat filter.    
+# Apply hat filter.
 def hatfilter(image, whiteHat, blackHat):
     tmp = cv2.add(image, whiteHat)
     return cv2.subtract(tmp, blackHat)
 
-# Apply AHE filter.    
+# Apply AHE filter.
 def AHE(image, clip, bins):
     tmp = exposure.equalize_adapthist(image,kernel_size=None, clip_limit=clip, nbins=bins)
     return (tmp*255).astype(np.uint8)
 
-# Apply gaussian filter.    
+# Apply gaussian filter.
 def gaussian(image, kernel=5):
-    return cv2.GaussianBlur(image,(kernel,kernel),0)    
+    return cv2.GaussianBlur(image,(kernel,kernel),0)
 
-
+# Crops the image to the given bounding box (x, y, w, h)
+def cutout(image, box):
+    return image[box[1]:box[1]+box[3], box[0]:box[0]+box[2]]

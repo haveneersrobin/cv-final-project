@@ -1,9 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import cv2
 
 import os
 import paths
 from operator import methodcaller
+from debug import *
 
 import collections
 
@@ -52,10 +54,14 @@ class Landmarks:
         else:
             return np.asarray(x, dtype=np.int32),np.asarray(y, dtype=np.int32)
 
-    def get_matrix(self):
+    def get_matrix(self, cv=False):
         # Returns [[x1, y2], [y1, y2], ...]
         x, y = self.get_two_lists()
-        return np.asarray(zip(x,y), dtype=np.float64)
+        if not cv:
+            return np.asarray(zip(x,y), dtype=np.float64)
+        else:
+            result = [[[xco, yco]] for xco in x for yco in y]
+            return np.asarray(result, np.float32)
 
     def _set_two_lists(self, two_lists):
         self.points = np.asarray(zip(two_lists[0], two_lists[1])).flatten()
@@ -84,6 +90,20 @@ class Landmarks:
     # Dot product for landmarks
     def dot(self, other):
         return Landmarks(np.dot(self.get_list(), other.get_list()))
+
+    # Rescale landmarks with given ratio
+    def rescale(self, ratio):
+        x,y = self.get_two_lists()
+        x_scale = x * ratio
+        y_scale = y * ratio
+        return Landmarks((x_scale, y_scale))
+
+    def find_extrema(self):
+        x,y = self.get_two_lists()
+        return max(x), min(x), max(y), min(y)
+
+
+
 
 
 # Open one tooth for one person. Returns landmark.
@@ -114,6 +134,14 @@ def load_landmarks_for_person(person):
         landmark_list.append(Landmarks(path))
     return landmark_list
 
+def load_all_landmarks():
+    print "Opening all landmarks "
+    landmarks_list = []
+    for i in range(1, 15):
+        landmarks = load_landmarks_for_person(i)
+        landmarks_list.append(landmarks)
+    return landmarks_list
+
 # Given a list of landmark objects
 # it calculates the mean and returns a list with new landmarks
 # but with translated x and y coordinates.
@@ -127,3 +155,60 @@ def all_to_origin(landmarks_list):
 # Return the mean landmark given a list of landmarks
 def mean_shape(landmarks_list):
     return Landmarks(np.mean(map(methodcaller('get_list'), landmarks_list), axis=0))
+
+# Given a list of landmarks, finds a bounding box that is the smallest that contains all the landmarks
+def find_global_bounding_box(landmarks_list, error=0):
+    points = []
+    for lm in landmarks_list:
+        rect = cv2.boundingRect(lm.get_matrix(cv=True))
+        points.append([[rect[0]-error, rect[1]-error]])
+        third = rect[0]+rect[2]+error
+        fourth = rect[1]+rect[3]+error
+        points.append([[third, fourth]])
+    return cv2.boundingRect(np.asarray(points, np.int32))
+
+
+def find_extrema(landmark_list):
+    maxx = 0.0
+    maxy = 0.0
+    minx = float("inf")
+    miny = float("inf")
+
+    for lm in landmark_list:
+        tmaxx, tminx, tmaxy, tminy = lm.find_extrema()
+        if tmaxx > maxx:
+            maxx = tmaxx
+        if tmaxy > maxy:
+            maxy = tmaxy
+        if tminx < minx:
+            minx = tminx
+        if tminy < miny:
+            miny = tminy
+
+    return int(maxx), int(minx), int(maxy), int(miny)
+
+def find_extrema_list(list_of_landmark_lists):
+    maxx = 0.0
+    maxy = 0.0
+    minx = float("inf")
+    miny = float("inf")
+    for lm_list in list_of_landmark_lists:
+        tmaxx, tminx, tmaxy, tminy = find_extrema(lm_list)
+        if tmaxx > maxx:
+            maxx = tmaxx
+        if tmaxy > maxy:
+            maxy = tmaxy
+        if tminx < minx:
+            minx = tminx
+        if tminy < miny:
+            miny = tminy
+    return int(maxx), int(minx), int(maxy), int(miny)
+
+def rescale_list(landmark_list, ratio):
+    result = []
+    for lm in landmark_list:
+        result.append(lm.rescale(ratio))
+    return result
+
+def calc_average_of_lm_list(landmark_list):
+    print landmark_list

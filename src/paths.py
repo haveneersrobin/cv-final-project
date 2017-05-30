@@ -1,5 +1,6 @@
 
 RADIO = '../data/Radiographs/'
+EXTRA = '../data/Radiographs/extra/'
 SEGMENT = '../data/Segmentations/'
 RESULT = '../data/Combinations/'
 CLAHE = '../data/CLAHE/'
