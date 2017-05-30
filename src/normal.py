@@ -110,27 +110,15 @@ def getNormalPoints(points, ptnNb, lgth, grayimg):
     P2[x] = points[ptnNb,x] - (V[x]*length)
     P2[y] = points[ptnNb,y] - (V[y]*length)
     
-    #construct buffers
-    itbuffer1 = createLineIterator(np.rint(P0).astype(int),np.rint(P1).astype(int),grayimg)
-    itbuffer2 = createLineIterator(np.rint(P0).astype(int),np.rint(P2).astype(int),grayimg) 
-
-    #reverse values
-    intensities1 = itbuffer1[:lgth+1,2]
-    intensities2 = itbuffer2[:lgth+1,2]     
-    xs1 = itbuffer1[:lgth+1,0]
-    ys1 = itbuffer1[:lgth+1,1]
-    xs2 = itbuffer2[:lgth+1,0]
-    ys2 = itbuffer2[:lgth+1,1]
-    xs2 = xs2[::-1]
-    ys2 = ys2[::-1]
-    intensities2 = intensities2[::-1]        
-    xs = np.append(xs2, xs1[1:])
-    ys = np.append(ys2, ys1[1:])
-    intensities = np.append(intensities2, intensities1[1:])
+    pts1 = get_line(np.rint(P0[x]).astype(np.int32),np.rint(P0[y]).astype(np.int32),np.rint(P1[x]).astype(np.int32),np.rint(P1[y]).astype(np.int32))
+    pts2 = get_line(np.rint(P0[x]).astype(np.int32),np.rint(P0[y]).astype(np.int32),np.rint(P2[x]).astype(np.int32),np.rint(P2[y]).astype(np.int32))
+    pts = np.append(pts1[:lgth+1][::-1],pts2[1:lgth+1])
+    xs = pts[0::2]
+    ys = pts[1::2]  
+    ints = grayimg[ys,xs]
+    zipped = [val for pair in zip(xs, ys) for val in pair]
     
-    #combine into one list
-    zipped = np.asarray([val for pair in zip(xs, ys) for val in pair])
-    return zipped, intensities    
+    return zipped, ints    
     
 
 # Get a list of coordinates and values of pixels 
@@ -167,29 +155,51 @@ def getAllNormalPoints(points, lgth, grayimg):
         P1[y] = points[idx,y] + (V[y]*length)
         P2[x] = points[idx,x] - (V[x]*length)
         P2[y] = points[idx,y] - (V[y]*length)
-        
-        #construct buffers
-        itbuffer1 = createLineIterator(np.rint(P0).astype(int),np.rint(P1).astype(int),grayimg)
-        itbuffer2 = createLineIterator(np.rint(P0).astype(int),np.rint(P2).astype(int),grayimg) 
 
-        #reverse values
-        intensities1 = itbuffer1[:lgth+1,2]
-        intensities2 = itbuffer2[:lgth+1,2]     
-        xs1 = itbuffer1[:lgth+1,0]
-        ys1 = itbuffer1[:lgth+1,1]
-        xs2 = itbuffer2[:lgth+1,0]
-        ys2 = itbuffer2[:lgth+1,1]
-        xs2 = xs2[::-1]
-        ys2 = ys2[::-1]
-        intensities2 = intensities2[::-1]        
-        xs = np.append(xs2, xs1[1:])
-        ys = np.append(ys2, ys1[1:])
-        intensities = np.append(intensities2, intensities1[1:])
+        pts1 = get_line(np.rint(P0[x]).astype(np.int32),np.rint(P0[y]).astype(np.int32),np.rint(P1[x]).astype(np.int32),np.rint(P1[y]).astype(np.int32))
+        pts2 = get_line(np.rint(P0[x]).astype(np.int32),np.rint(P0[y]).astype(np.int32),np.rint(P2[x]).astype(np.int32),np.rint(P2[y]).astype(np.int32))
+        pts = np.append(pts1[:lgth+1][::-1],pts2[1:lgth+1])
+        xs = pts[0::2]
+        ys = pts[1::2]  
+        ints = grayimg[ys,xs]
+        zipped[idx] = [val for pair in zip(xs, ys, ints) for val in pair]
         
-        #combine into one list
-        zipped[idx] = [val for pair in zip(xs, ys, intensities) for val in pair]
-    return zipped
-    
+    return zipped 
+
+        
+def get_line(x1, y1, x2, y2):
+    points = []
+    issteep = abs(y2-y1) > abs(x2-x1)
+    if issteep:
+        x1, y1 = y1, x1
+        x2, y2 = y2, x2
+    rev = False
+    if x1 > x2:
+        x1, x2 = x2, x1
+        y1, y2 = y2, y1
+        rev = True
+    deltax = x2 - x1
+    deltay = abs(y2-y1)
+    error = int(deltax / 2)
+    y = y1
+    ystep = None
+    if y1 < y2:
+        ystep = 1
+    else:
+        ystep = -1
+    for x in range(x1, x2 + 1):
+        if issteep:
+            points.append((y, x))
+        else:
+            points.append((x, y))
+        error -= deltay
+        if error < 0:
+            y += ystep
+            error += deltax
+    # Reverse the list if the coordinates were reversed
+    if rev:
+        points.reverse()
+    return points
     
 if __name__ == '__main__':
 
@@ -204,27 +214,35 @@ if __name__ == '__main__':
     k = 1 # mond
     j = 1 #tand
     data = np.loadtxt(paths.LANDMARK+'landmarks'+str(k)+'-'+str(j)+'.txt').astype(int)
-    print data,'\n'
+    # print data,'\n'
 
     objectArray = np.reshape(data, (2, 40), order='F')
     print objectArray,'\n'
 
     points = np.reshape(data, (40, 2), order='C')
-    print "points", points,'\n'
+    # print "points", points,'\n'
 
     img = cv2.imread(paths.RADIO+'01.tif')    
-    gradimg = cv2.imread(paths.SOBEL+'01SobelGauss.png')
-    gradimg = cv2.cvtColor(gradimg, cv2.COLOR_RGB2GRAY)
+    gradimg = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
 
-    p = getAllNormalPoints(Landmarks(data), 10, gradimg)
-    print p.shape
-    print p[0].shape
-    print p[0]
+    p = getAllNormalPointsTEST(Landmarks(data), 10, gradimg)
+    print p
+    xs = p[:,0::3]
+    ys = p[:,1::3]
+    intensities = p[:,2::3]
+    print xs
+    print ys
+    print intensities
+    # print data[0:2]
+    # print p.shape
+    # print p[0].shape
+    # print p[0]
     
-    p2 = getNormalPoints(Landmarks(data), 0, 10, gradimg)
-    print p2.shape
-    print p2
+    # p2,int = getNormalPoints(Landmarks(data), 0, 10, gradimg)
+    # print p2.shape
+    # print p2
+    # print int
 
 
 

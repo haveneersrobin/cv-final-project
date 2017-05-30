@@ -100,9 +100,9 @@ def alignFitLandmarks(theta, s, t, newLms):
 def main():
     index = 0
     landmark_list = load_all_landmarks_for_tooth(1)
-    #draw(landmark_list, "green")
-    mean, result, _ = alignSetOfShapes(landmark_list)
-    #draw(result, "red", True)
+    draw(landmark_list, "blue")
+    # mean, result, norm = alignSetOfShapes(landmark_list)
+    # draw(result, "blue",True)
     #alignFitLandmarks(landmark_list[1], landmark_list[2])
 
 if __name__ == '__main__':
