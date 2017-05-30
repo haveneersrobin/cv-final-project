@@ -17,9 +17,7 @@ def manual_init(model, norm, radiograph):
 
     first_click = True
     dragged = False
-    ratio, new_dimensions = scale_radiograph(radiograph, 800)
-
-    resized = cv2.resize(radiograph, (new_dimensions[1], new_dimensions[0]), interpolation = cv2.INTER_AREA)
+    ratio, new_dimensions, resized = scale_radiograph(radiograph, 800)
 
     canvas = np.array(resized)
 
@@ -35,6 +33,7 @@ def manual_init(model, norm, radiograph):
     y_scaled = np.asarray(y+ymin, dtype=np.float64)*ratio*norm
 
     zipped = np.asarray(zip(x_scaled, y_scaled), dtype=np.int32)
+    print zipped
     current_tooth = zipped
 
     cv2.polylines(resized, [zipped], True, (0, 255, 0))
@@ -45,8 +44,8 @@ def manual_init(model, norm, radiograph):
 
     print current_tooth
     return Landmarks(current_tooth)
-    
-    
+
+
 def mouse(event, posx, posy, flags, image):
 
     global currentpos
