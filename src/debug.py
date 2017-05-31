@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.colors as colors
 
 import collections
 
@@ -50,8 +51,6 @@ def draw_with_rect(shapes,rect, color = 'blue', originAtZero = False):
     ax.add_patch(rect)
     plt.show()
 
-def get_color(RGBint):
-    blue =  RGBint & 255
-    green = (RGBint >> 8) & 255
-    red =   (RGBint >> 16) & 255
-    return red, green, blue
+def get_color(i):
+    colors = [(53, 196, 234), (149, 89, 52), (102, 0, 228), (164, 206, 3), (61, 77, 51), (100, 223, 125), (110, 77, 237), (246, 246, 156)]
+    return colors[i]
