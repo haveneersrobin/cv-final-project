@@ -1,12 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-
 import os
 import paths
 from operator import methodcaller
 from debug import *
-
 import collections
 
 class Landmarks:

@@ -4,7 +4,6 @@ import numpy as np
 from procrustes import *
 from landmarks import *
 
-landmarkPath = 'data/Landmarks/Original'
 np.set_printoptions(threshold='nan')
 
 def pcaBuiltIn(landmarks):
@@ -37,9 +36,6 @@ def main():
     lm = load_all_landmarks_for_tooth(1)
     mean, result, _ = alignSetOfShapes(lm)
     vals, P = pcaManual(result)
-
-
-
     
 if __name__ == '__main__':
     main()

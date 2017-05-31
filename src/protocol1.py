@@ -74,14 +74,8 @@ def iterate(toothNb, initialPoints, meanShape, P, vals, img, maxIter=5,method=1,
     
     Y = points = initialPoints
     prevPoints = Landmarks(np.zeros(points.get_list().shape))
-    it = 0
-    
-    profiles, covariances = greymodels33.createGreyLevelModel(toothNb, lenProfile)
-    
-    
-    # for profile in profiles:
-        # plt.plot(profile)
-        # plt.show()
+    it = 0    
+    profiles, covariances = greymodels.createGreyLevelModel(toothNb, lenProfile)    
     
     if method == 1:
         while( max(abs(points.get_list()-prevPoints.get_list())) > 1 and it < maxIter ):
@@ -134,15 +128,6 @@ def iterate(toothNb, initialPoints, meanShape, P, vals, img, maxIter=5,method=1,
             
             #Set new points
             points = foundPoints
-            # pX, pY = points.get_two_lists(integer=True)
-            # xX, xY = Y.get_two_lists(integer=True)
-            # Nb = len(points.get_list())/2
-            # im2 = img.copy()
-            # for i in range(Nb):
-                # cv2.line(im2, (pX[i],pY[i]),(pX[(i+1) % Nb],pY[(i+1) % Nb]), (255,0,255), 1)
-                # cv2.line(im2, (xX[i],xY[i]),(xX[(i+1) % Nb],xY[(i+1) % Nb]),(255,255,0), 1)
-            # cv2.imshow('',im2)
-            # cv2.waitKey(0)  
         
         return Y, foundPoints
         
@@ -162,11 +147,8 @@ def findPoints1(img, toothNb, points, len):
     
     for idx, ints in enumerate(intensities):
         max_value = np.amax(smooth(ints,3))
-        # print "maxval=",max_value
         max_index = np.where(smooth(ints,3)==max_value)
-        # print "max_index=",max_index
         indx = np.median(max_index[0]).astype(int)
-        # print "index=",indx
         newXs[idx] = xs[idx][indx]
         newYs[idx] = ys[idx][indx]
         
@@ -177,22 +159,16 @@ def findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfi
     
     sobel = applySobel(img)
     gray_img = to_grayscale(img)
-    
-    pX,pY = points.get_two_lists()
 
+    # Normal points on gray image
     itbuffer = getAllNormalPoints(points, lenSearch, gray_img)
     xs = itbuffer[:,0::3]
     ys = itbuffer[:,1::3]
     intensities = itbuffer[:,2::3]
     
+    #Normal points on sobel image
     itbuffer2 = getAllNormalPoints(points, lenSearch, sobel)
-    xs = itbuffer2[:,0::3]
-    ys = itbuffer2[:,1::3]
     intensities2 = itbuffer2[:,2::3]
-    # im2 = img.copy()
-    # im2[ys.astype(np.uint),xs.astype(np.uint)] = (255,255,255)
-    # cv2.imshow('',im2)
-    # cv2.waitKey(0)     
     
     newXs = np.zeros(points.get_list().shape[0]/2)
     newYs = np.zeros(points.get_list().shape[0]/2)
@@ -201,35 +177,19 @@ def findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfi
     bestFits2 = []
     
     for idx in range(0,40):
-        normalizedSearchProfiles = greymodels33.calculateProfile(intensities[idx],intensities2[idx])   
+        normalizedSearchProfiles = greymodels.calculateProfile(intensities[idx],intensities2[idx])   
         subsequences = np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2+1], normalizedSearchProfiles[lenProfile*2:])).T
-        
-        #np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2+1], normalizedSearchProfiles[lenProfile*2:])).T voor greymodels2
-        #np.asarray(hankel(normalizedSearchProfiles[:lenProfile*2], normalizedSearchProfiles[lenProfile*2-1:])).T voor greymodels
-        # print "Search Profile=\n",normalizedSearchProfiles
         bestFit, error = findBestFit(profiles[idx],subsequences, covariances[idx])
-        # print idx,"Bestfit=",bestFit
         bestFits[bestFit] += 1
         bestFits2.append(bestFit)
 
+    # smooth shape
     bestFits2 = signal.medfilt(bestFits2,5)
     
     for idx in range(0,40):    
         newidx = np.rint(bestFits2[idx]+lenProfile+1).astype(np.uint32)
-        # print "newidx=",newidx
         newXs[idx] = xs[idx][newidx]
         newYs[idx] = ys[idx][newidx]
-        
-    # for idx in range(0,10):    
-        # newXs[idx] = pX[idx]
-        # newYs[idx] = pY[idx]     
-
-    # for idx in range(30,40):    
-        # newXs[idx] = pX[idx]
-        # newYs[idx] = pY[idx]          
-        
-    # for idx, val in enumerate(bestFits):
-        # print idx,": ",val
         
     return Landmarks(np.asarray([val for pair in zip(newXs, newYs) for val in pair])), np.sum(bestFits[len(bestFits)/2 - 1 : len(bestFits)/2 + 2])
     
@@ -237,48 +197,18 @@ def findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfi
 # Determine which subsequence is most similar to the profile.    
 def findBestFit(profile, subsequences, covariance):
 
-    # print "Model Profile=\n",profile 
-    
-    # plt.subplot(211)
-    # plt.plot(profile)
     profile = smooth(profile,5)
-    # plt.subplot(212)
-    # plt.plot(profile)
-    # plt.title("profile")
-    # plt.show()
-    
     minSeq = -1
     min = np.inf
-    # print "Nb of subs=",len(subsequences)
+
     for seqNb, sequence in enumerate(subsequences):
         sequence = smooth(sequence,5)
         subsequences[seqNb] = sequence
-        # print "Subsequence=\n",seqNb,sequence
         diff = sequence-profile
-        # print "Difference=",diff
         C_inv = np.linalg.inv(covariance)
         f = np.fabs(np.dot(np.dot(diff.T,C_inv),diff))
-        # f = np.dot(diff.T, diff)
-        # print "f=",f
         (minSeq,min) = (seqNb,f) if f < min else (minSeq,min)
-        # raw_input('Press <ENTER> to continue')             
-        
-    # plt.subplot(711)
-    # plt.plot(subsequences[0])
-    # plt.subplot(712)
-    # plt.plot(subsequences[1])
-    # plt.subplot(713)
-    # plt.plot(subsequences[2])
-    # plt.subplot(714)
-    # plt.plot(subsequences[3])
-    # plt.subplot(715)
-    # plt.plot(subsequences[4])  
-    # plt.subplot(716)
-    # plt.plot(subsequences[minSeq])     
-    # plt.subplot(717)
-    # plt.plot(profile)
-    # plt.show()        
-        
+
     return minSeq, min
 
 def smooth(y, box_pts):
@@ -287,22 +217,6 @@ def smooth(y, box_pts):
     return y_smooth    
 
 def main():
-    
-    print "Setup variables"
-    print "Loading image."
-    imgNb = 1
-    img = load_image(imgNb)
-    toothNb = 1
-    print "Loading landmarks."
-    points = np.loadtxt(paths.LANDMARK+'landmarks'+str(imgNb)+'-'+str(toothNb)+'.txt').astype(np.int32)
-    print "Creating grey level models."
-    lenProfile = 3
-    lenSearch = 5
-    profiles, covariances = createGreyLevelModel(toothNb, lenProfile)    
-    print "Calling function."
-    lms = findPoints2(img, toothNb, Landmarks(points), profiles, covariances, lenSearch, lenProfile)
-    print points
-    print lms.get_list()
-    
+    return
 if __name__ == '__main__':
     main()

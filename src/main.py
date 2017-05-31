@@ -22,6 +22,7 @@ from radiograph import *
 from debug import *
 import matplotlib.colors as colors
 
+# !DEPRECATED! This method was merely used as a test method. Run leaveOneOut() for correct execution!
 def main():
     print "Setup variables."
     # Setup variabls.
@@ -60,8 +61,6 @@ def main():
         Y, foundPoints = iterate(tooth_to_fit, init_tooth, meanShape, ASM_P, eigenvalues, image, maxIter)
         allFoundPoints.append(foundPoints)
 
-
-
     # # Plot found points.
     Nb = 40
     for idx in range(0,len(allFoundPoints)):
@@ -79,47 +78,45 @@ def main():
     cv2.imshow('',image)
     cv2.waitKey(0)
 
-
+# Perform segmentation, leave-one-out based approach.
 def leaveOneOut():
 
-    print "Setup variables."
     # Setup variabls.
-    # maxIter = 5
+    init_method = 1 # 1 for manual, 0 for auto
     test_image = 1
     name = "%02d" % test_image
     allFoundPoints1 = []
     allFoundPoints2 = []
 
+    # some colors for drawing
     cWhite = (255,255,255)
     cBlue = (255,0,0)
     cGreen = (0,255,0)
     cGrey = (64,64,64)
 
+    # Find all teeth.
     for tooth_to_fit in range(1,9):
 
         # Read image.
-        print "Reading image."
         image = load_image(test_image)
 
         # Read landmarks for tooth.
-        print "Reading landmarks."
         landmark_list = load_all_landmarks_for_tooth_except_test(tooth_to_fit, test_image)
         original_lms = load_landmarks_for_person(test_image)
 
         # Build ASM.
-        print "Building ASM model."
         meanShape, ASM_P, eigenvalues, norm = buildASM(landmark_list)
 
-        # Manual Init.
-        print "Manual initialisation."
-        init_tooth = manual_init(meanShape.get_two_lists(), norm, image)
-        # init_tooth = auto_init(meanShape.get_two_lists(), norm, tooth_to_fit, image)
+        # Manual or auto init.
+        if init_method == 1:
+            init_tooth = manual_init(meanShape.get_two_lists(), norm, image)
+        elif init_method == 0:
+            init_tooth = auto_init(meanShape.get_two_lists(), norm, tooth_to_fit, image)
 
-        print "Scaling radiograph."
+        # Scale radiograph.
         ratio, new_dimensions, image = scale_radiograph(image, 800)
 
         # Iterate until convergence.
-        print "Starting iterations."
         Y, foundPoints1 = iterate(tooth_to_fit, init_tooth, meanShape, ASM_P, eigenvalues, image, maxIter=5, method=1, lenProfile=5)
         Y, foundPoints2 = iterate(tooth_to_fit, init_tooth, meanShape, ASM_P, eigenvalues, image, maxIter=5, method=2, lenProfile=5, lenSearch=7)
         allFoundPoints1.append(foundPoints1)
@@ -135,31 +132,42 @@ def leaveOneOut():
         foundPointsX1, foundPointsY1 = allFoundPoints1[idx].get_two_lists(integer=True)
         foundPointsX2, foundPointsY2 = allFoundPoints2[idx].get_two_lists(integer=True)
         
-        canvas = np.zeros(image.shape)
-        coords = np.asarray([[foundPointsX1[i],foundPointsY1[i]] for i in range(0,Nb)])
-        cv2.fillConvexPoly(canvas, coords, (64.0, 64.0, 64.0))
-        cv2.imwrite(paths.FOUND+name+'-'+str(idx)+'.png',canvas)
+        # save segmentations
+        canvas1 = np.zeros(image.shape)
+        canvas2 = np.zeros(image.shape)
         
+        coords = np.asarray([[foundPointsX1[i],foundPointsY1[i]] for i in range(0,Nb)])
+        cv2.fillConvexPoly(canvas1, coords, (64.0, 64.0, 64.0))
+        cv2.imwrite(paths.FOUND+name+'-'+str(idx)+'_method1.png',canvas)
+        
+        coords = np.asarray([[foundPointsX2[i],foundPointsY2[i]] for i in range(0,Nb)])
+        cv2.fillConvexPoly(canvas2, coords, (64.0, 64.0, 64.0))
+        cv2.imwrite(paths.FOUND+name+'-'+str(idx)+'_method2.png',canvas)
+        
+        # draw results
         lms, norm = original_lms[idx].scale()
         originalX, originalY = lms.get_two_lists()
+        
         originalY *= ratio*norm
         originalX *= ratio*norm
+        
         originalX = np.rint(originalX).astype(np.uint32)
-        originalY = np.rint(originalY).astype(np.uint32)        
+        originalY = np.rint(originalY).astype(np.uint32) 
+        
         for i in range(0,Nb):
             cv2.line(image1, (foundPointsX1[i],foundPointsY1[i]),(foundPointsX1[(i+1) % Nb],foundPointsY1[(i+1) % Nb]), cBlue, 2)
             cv2.line(image1, (originalX[i],originalY[i]),(originalX[(i+1) % Nb],originalY[(i+1) % Nb]), cGreen, 1)
         for i in range(0,Nb):
             cv2.line(image2, (foundPointsX2[i],foundPointsY2[i]),(foundPointsX2[(i+1) % Nb],foundPointsY2[(i+1) % Nb]), cBlue, 2)
             cv2.line(image2, (originalX[i],originalY[i]),(originalX[(i+1) % Nb],originalY[(i+1) % Nb]), cGreen, 1)
+            
     # cv2.imshow('1',image1)
     cv2.imwrite(paths.FOUND+name+'_method1.png',image1)
     # cv2.imshow('2',image2)
     cv2.imwrite(paths.FOUND+name+'_method2.png',image2)
     cv2.waitKey(0)
 
-    # return allFoundPoints
-    
+# Util method. Only used to create images for report/presentation.    
 def getAutoTeeth():
     # Read image.
     print "Reading image."
@@ -196,6 +204,7 @@ def getAutoTeeth():
     # cv2.imwrite(paths.FOUND+name+'_method2.png',image2)
     cv2.waitKey(0)
 
+# Util method. Only used to create images for report/presentation.    
 def meanshapevariance():
 
     # Read landmarks for tooth.
@@ -216,12 +225,6 @@ def meanshapevariance():
     ev2 = eigenvalues.copy()
     ev2[2] = eigenvalues[2]*-3
     shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev2)))
-    # ev3 = eigenvalues.copy()
-    # ev3[1] = eigenvalues[1]*-2
-    # shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev3)))
-    # ev4 = eigenvalues.copy()
-    # ev4[1] = eigenvalues[1]*2
-    # shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev4)))
     ev5 = eigenvalues.copy()
     ev5[2] = eigenvalues[2]*3
     shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev5)))
@@ -235,12 +238,6 @@ def meanshapevariance():
     ev2 = eigenvalues.copy()
     ev2[1] = eigenvalues[1]*-3
     shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev2)))
-    # ev3 = eigenvalues.copy()
-    # ev3[1] = eigenvalues[1]*-2
-    # shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev3)))
-    # ev4 = eigenvalues.copy()
-    # ev4[1] = eigenvalues[1]*2
-    # shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev4)))
     ev5 = eigenvalues.copy()
     ev5[1] = eigenvalues[1]*3
     shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev5)))
@@ -254,12 +251,6 @@ def meanshapevariance():
     ev2 = eigenvalues.copy()
     ev2[0] = eigenvalues[0]*-3
     shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev2)))
-    # ev3 = eigenvalues.copy()
-    # ev3[0] = eigenvalues[0]*-2
-    # shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev3)))
-    # ev4 = eigenvalues.copy()
-    # ev4[0] = eigenvalues[0]*2
-    # shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev4)))
     ev5 = eigenvalues.copy()
     ev5[0] = eigenvalues[0]*3
     shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev5)))
@@ -319,10 +310,6 @@ def meanshapevariance():
     # plt.title('Primary modes variation')
     plt.show()
     
-def validateResults(allFoundPoints, originalLms):
-
-    for idx, lm in enumerate(allFoundPoints):
-        originals = originalLms[idx]
 
 if __name__ == '__main__':
-    getAutoTeeth()
+    leaveOneOut()

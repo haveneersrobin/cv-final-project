@@ -6,9 +6,7 @@ import fnmatch
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import math
-
 import paths
-
 from skimage import exposure, io, img_as_int, img_as_float, img_as_ubyte
 from scipy import signal
 from  scipy.ndimage import filters
@@ -68,21 +66,20 @@ def applySobel(img):
 def processImage(img):
 
     whiteHatParam = 400
-
     blackHatParam = 60
 
     img = to_grayscale(img)
     img = gaussian(img,3)
     img = medianfilter(img,9)
 
-    img = cv2.bilateralFilter(img, 9, 150, 150)
+    # img = cv2.bilateralFilter(img, 9, 150, 150)
     whiteHat = whitehat(img,whiteHatParam)
     blackHat = blackhat(img,blackHatParam)
     img = hatfilter(img, whiteHat, blackHat)
-    cv2.imwrite(paths.SOBEL+"HAT.png",img)
+    # cv2.imwrite(paths.SOBEL+"HAT.png",img)
     img = AHE(img, 1.0, 256)
     # img = cv2.equalizeHist(img)
-    cv2.imwrite(paths.SOBEL+"AHE.png",img)
+    # cv2.imwrite(paths.SOBEL+"AHE.png",img)
 
     return img
 
@@ -91,11 +88,11 @@ def medianfilter(image, size=5):
     return filters.median_filter(image,size)
 
 # Calculate black hat.
-def blackhat(image, size=50):
+def blackhat(image, size=60):
     return morphology.black_tophat(image, size)
 
 # Calculate white hat.
-def whitehat(image, size=200):
+def whitehat(image, size=400):
     return morphology.white_tophat(image, size)
 
 # Apply hat filter.
@@ -119,5 +116,6 @@ def cutout(image, box):
 
 def main():
     return
+    
 if __name__ == '__main__':
     main()

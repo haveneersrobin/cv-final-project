@@ -167,6 +167,7 @@ def getAllNormalPoints(points, lgth, grayimg):
     return zipped 
 
         
+# Copied from https://stackoverflow.com/questions/25837544/get-all-points-of-a-straight-line-in-python        
 def get_line(x1, y1, x2, y2):
     points = []
     issteep = abs(y2-y1) > abs(x2-x1)
@@ -201,48 +202,7 @@ def get_line(x1, y1, x2, y2):
         points.reverse()
     return points
     
-if __name__ == '__main__':
 
-    radioPath = 'data/Radiographs/'
-    landmarkPath = 'data/Landmarks/original/'
-    sobelPath = 'data/Sobel/'
-
-    cWhite = (255,255,255)
-    cBlue = (255,0,0)
-    cGreen = (0,255,0)
-
-    k = 1 # mond
-    j = 1 #tand
-    data = np.loadtxt(paths.LANDMARK+'landmarks'+str(k)+'-'+str(j)+'.txt').astype(int)
-    # print data,'\n'
-
-    objectArray = np.reshape(data, (2, 40), order='F')
-    print objectArray,'\n'
-
-    points = np.reshape(data, (40, 2), order='C')
-    # print "points", points,'\n'
-
-    img = cv2.imread(paths.RADIO+'01.tif')    
-    gradimg = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
-
-    p = getAllNormalPointsTEST(Landmarks(data), 10, gradimg)
-    print p
-    xs = p[:,0::3]
-    ys = p[:,1::3]
-    intensities = p[:,2::3]
-    print xs
-    print ys
-    print intensities
-    # print data[0:2]
-    # print p.shape
-    # print p[0].shape
-    # print p[0]
-    
-    # p2,int = getNormalPoints(Landmarks(data), 0, 10, gradimg)
-    # print p2.shape
-    # print p2
-    # print int
 
 
 
