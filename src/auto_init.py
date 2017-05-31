@@ -95,7 +95,7 @@ def average_starting(tooth, img_r, minx, miny, scores):
 
 def main():
     lm  = load_one_landmark(3, 7)
-    i = load_image(18)
+    i = load_image(3)
     _, result = lm.to_origin()
     normalized, norm = result.scale()
 

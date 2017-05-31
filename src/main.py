@@ -268,4 +268,4 @@ def validateResults(allFoundPoints, originalLms):
         originals = originalLms[idx]
 
 if __name__ == '__main__':
-    meanshapevariance()
+    main()

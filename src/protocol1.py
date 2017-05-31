@@ -89,8 +89,8 @@ def iterate(toothNb, initialPoints, meanShape, P, vals, img, maxIter):
         # raw_input('Press <ENTER> to continue')
         
         #Find next best points Y, from given points 'points'
-        Y = findPoints1(img, toothNb, points, 5)  
-        # Y, middleSum = findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfile)
+        # Y = findPoints1(img, toothNb, points, 5)  
+        Y, middleSum = findPoints2(img, toothNb, points, profiles, covariances, lenSearch, lenProfile)
         print middleSum
         # YX, YY = Y.get_two_lists(integer=True)
         # Nb = len(Y.get_list())/2
