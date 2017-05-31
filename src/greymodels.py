@@ -54,7 +54,7 @@ def loadImages2():
 # Create the landmark profiles and corresponding covariance matrices.    
 def createGreyLevelModel(toothNb, lgth):
     imgs = loadImages2()
-    gimgs = loadImages()
+    gradimgs = loadImages()
     
     y_streeps = [] 
     vals = np.zeros((40,14,1+lgth*2))
@@ -97,8 +97,7 @@ def calculateMeanProfileOfLandmark(intensities):
 
     return (np.mean(np.array(intensities), axis=0))
 
-        
-        
+    
 # Calculate the grey level of the given values.
 def calculateProfile(values,gradients):
 

@@ -17,7 +17,6 @@ from normal import *
 from landmarks import *
 from ASM import *
 import greymodels
-import greymodels2
 from radiograph import *
 import paths
 from scipy.linalg import hankel

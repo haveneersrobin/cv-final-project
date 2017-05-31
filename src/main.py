@@ -82,8 +82,8 @@ def main():
 def leaveOneOut():
 
     # Setup variabls.
-    init_method = 1 # 1 for manual, 0 for auto
-    test_image = 1
+    init_method = 0 # 1 for manual, 0 for auto
+    test_image = 2
     name = "%02d" % test_image
     allFoundPoints1 = []
     allFoundPoints2 = []
@@ -105,6 +105,7 @@ def leaveOneOut():
         original_lms = load_landmarks_for_person(test_image)
 
         # Build ASM.
+        print "Building ASM."
         meanShape, ASM_P, eigenvalues, norm = buildASM(landmark_list)
 
         # Manual or auto init.
@@ -117,6 +118,7 @@ def leaveOneOut():
         ratio, new_dimensions, image = scale_radiograph(image, 800)
 
         # Iterate until convergence.
+        print "Starting iterations."
         Y, foundPoints1 = iterate(tooth_to_fit, init_tooth, meanShape, ASM_P, eigenvalues, image, maxIter=5, method=1, lenProfile=5)
         Y, foundPoints2 = iterate(tooth_to_fit, init_tooth, meanShape, ASM_P, eigenvalues, image, maxIter=5, method=2, lenProfile=5, lenSearch=7)
         allFoundPoints1.append(foundPoints1)
@@ -138,11 +140,11 @@ def leaveOneOut():
         
         coords = np.asarray([[foundPointsX1[i],foundPointsY1[i]] for i in range(0,Nb)])
         cv2.fillConvexPoly(canvas1, coords, (64.0, 64.0, 64.0))
-        cv2.imwrite(paths.FOUND+name+'-'+str(idx)+'_method1.png',canvas)
+        cv2.imwrite(paths.FOUND+name+'-'+str(idx)+'_method1.png',canvas1)
         
         coords = np.asarray([[foundPointsX2[i],foundPointsY2[i]] for i in range(0,Nb)])
         cv2.fillConvexPoly(canvas2, coords, (64.0, 64.0, 64.0))
-        cv2.imwrite(paths.FOUND+name+'-'+str(idx)+'_method2.png',canvas)      
+        cv2.imwrite(paths.FOUND+name+'-'+str(idx)+'_method2.png',canvas2)      
 
         lms, norm = original_lms[idx].scale()
         originalX, originalY = lms.get_two_lists()
@@ -154,17 +156,24 @@ def leaveOneOut():
         originalY = np.rint(originalY).astype(np.uint32) 
 
         for i in range(0,Nb):
-            cv2.line(image1, (foundPointsX1[i],foundPointsY1[i]),(foundPointsX1[(i+1) % Nb],foundPointsY1[(i+1) % Nb]), cBlue, 2)
+            cv2.line(image1, (foundPointsX1[i],foundPointsY1[i]),(foundPointsX1[(i+1) % Nb],foundPointsY1[(i+1) % Nb]), cBlue, 1)
             cv2.line(image1, (originalX[i],originalY[i]),(originalX[(i+1) % Nb],originalY[(i+1) % Nb]), cGreen, 1)
         for i in range(0,Nb):
-            cv2.line(image2, (foundPointsX2[i],foundPointsY2[i]),(foundPointsX2[(i+1) % Nb],foundPointsY2[(i+1) % Nb]), cBlue, 2)
+            cv2.line(image2, (foundPointsX2[i],foundPointsY2[i]),(foundPointsX2[(i+1) % Nb],foundPointsY2[(i+1) % Nb]), cBlue, 1)
             cv2.line(image2, (originalX[i],originalY[i]),(originalX[(i+1) % Nb],originalY[(i+1) % Nb]), cGreen, 1)
             
-    # cv2.imshow('1',image1)
-    cv2.imwrite(paths.FOUND+name+'_method1.png',image1)
-    # cv2.imshow('2',image2)
-    cv2.imwrite(paths.FOUND+name+'_method2.png',image2)
-    cv2.waitKey(0)
+    if init_method == 1:
+        cv2.imwrite(paths.FOUND+name+'_method1_manual.png',image1)
+        cv2.imwrite(paths.FOUND+name+'_method2_manual.png',image2)
+        # cv2.imshow('2',image2)
+        # cv2.imshow('1',image1)        
+        # cv2.waitKey(0)
+    elif init_method == 0:
+        cv2.imwrite(paths.FOUND+name+'_method1_auto.png',image1)
+        cv2.imwrite(paths.FOUND+name+'_method2_auto.png',image2)
+        # cv2.imshow('2',image2)
+        # cv2.imshow('1',image1)        
+        # cv2.waitKey(0)
 
 
 # Util method. Only used to create images for report/presentation.    
