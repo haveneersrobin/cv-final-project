@@ -134,18 +134,18 @@ def leaveOneOut():
     for idx in range(0,len(allFoundPoints1)):
         foundPointsX1, foundPointsY1 = allFoundPoints1[idx].get_two_lists(integer=True)
         foundPointsX2, foundPointsY2 = allFoundPoints2[idx].get_two_lists(integer=True)
-        
+
         canvas = np.zeros(image.shape)
         coords = np.asarray([[foundPointsX1[i],foundPointsY1[i]] for i in range(0,Nb)])
         cv2.fillConvexPoly(canvas, coords, (64.0, 64.0, 64.0))
         cv2.imwrite(paths.FOUND+name+'-'+str(idx)+'.png',canvas)
-        
+
         lms, norm = original_lms[idx].scale()
         originalX, originalY = lms.get_two_lists()
         originalY *= ratio*norm
         originalX *= ratio*norm
         originalX = np.rint(originalX).astype(np.uint32)
-        originalY = np.rint(originalY).astype(np.uint32)        
+        originalY = np.rint(originalY).astype(np.uint32)
         for i in range(0,Nb):
             cv2.line(image1, (foundPointsX1[i],foundPointsY1[i]),(foundPointsX1[(i+1) % Nb],foundPointsY1[(i+1) % Nb]), cBlue, 2)
             cv2.line(image1, (originalX[i],originalY[i]),(originalX[(i+1) % Nb],originalY[(i+1) % Nb]), cGreen, 1)
@@ -159,11 +159,11 @@ def leaveOneOut():
     cv2.waitKey(0)
 
     # return allFoundPoints
-    
+
 def getAutoTeeth():
     # Read image.
     print "Reading image."
-    test_image = 1
+    test_image = 17
     image = load_image(test_image)
     ratio, new_dimensions, image2 = scale_radiograph(image, 800)
     # image2 = image.copy()
@@ -171,16 +171,16 @@ def getAutoTeeth():
 
     clrs = colors.cnames
     print clrs
-    
+
     for tooth_to_fit in range(1,9):
         # Read landmarks for tooth.
         print "Reading landmarks."
         landmark_list = load_all_landmarks_for_tooth(tooth_to_fit)
-    
+
         # Build ASM.
         print "Building ASM model."
         meanShape, ASM_P, eigenvalues, norm = buildASM(landmark_list)
-    
+
         # Manual Init.
         print "Manual initialisation."
         # init_tooth = manual_init(meanShape.get_two_lists(), norm, image)
@@ -191,7 +191,7 @@ def getAutoTeeth():
         clr = get_color(tooth_to_fit-1)
         print clr
         for i in range(0,Nb):
-            cv2.line(image2, (foundPointsX1[i],foundPointsY1[i]),(foundPointsX1[(i+1) % Nb],foundPointsY1[(i+1) % Nb]), clr, 2)
+            cv2.line(image2, (foundPointsX1[i],foundPointsY1[i]),(foundPointsX1[(i+1) % Nb],foundPointsY1[(i+1) % Nb]), clr, 1)
     cv2.imshow('2',image2)
     # cv2.imwrite(paths.FOUND+name+'_method2.png',image2)
     cv2.waitKey(0)
@@ -266,36 +266,36 @@ def meanshapevariance():
     ev6 = eigenvalues.copy()
     ev6[0] = eigenvalues[0]*10
     shapes.append(Landmarks(meanShape.get_list()+np.dot(ASM_P,ev6)))
-       
+
     mx,my = meanShape.get_two_lists()
     mx = np.append(mx, mx[0])
     my = np.append(my, my[0])
-    
-    # draw(shapes)    
+
+    # draw(shapes)
     fig = plt.figure()
-    
+
     s1 = fig.add_subplot(131)
     s1.set_title('Mode 1')
-    
+
     for i in range(9,13):
         x,y = shapes[i].get_two_lists()
         x = np.append(x, x[0])
         y = np.append(y, y[0])
-        s1.plot(x, y, linewidth=.5, color='r') 
-        
-    s1.plot(mx, my, linewidth=1, color='b')    
+        s1.plot(x, y, linewidth=.5, color='r')
+
+    s1.plot(mx, my, linewidth=1, color='b')
     plt.gca().invert_yaxis()
     plt.axis('equal')
     # plt.axis('off')
 
     s2 = fig.add_subplot(132)
     s2.set_title('Mode 2')
-    
+
     for i in range(5,9):
         x,y = shapes[i].get_two_lists()
         x = np.append(x, x[0])
         y = np.append(y, y[0])
-        s2.plot(x, y, linewidth=.5, color='r') 
+        s2.plot(x, y, linewidth=.5, color='r')
 
     s2.plot(mx, my, linewidth=1, color='b')
     plt.gca().invert_yaxis()
@@ -304,21 +304,21 @@ def meanshapevariance():
 
     s3 = fig.add_subplot(133)
     s3.set_title('Mode 3')
-    
+
     for i in range(1,5):
         x,y = shapes[i].get_two_lists()
         x = np.append(x, x[0])
         y = np.append(y, y[0])
-        s3.plot(x, y, linewidth=.5, color='r')   
-    
+        s3.plot(x, y, linewidth=.5, color='r')
+
     s3.plot(mx, my, linewidth=1, color='b')
     plt.gca().invert_yaxis()
     plt.axis('equal')
     # plt.axis('off')
-    
+
     # plt.title('Primary modes variation')
     plt.show()
-    
+
 def validateResults(allFoundPoints, originalLms):
 
     for idx, lm in enumerate(allFoundPoints):

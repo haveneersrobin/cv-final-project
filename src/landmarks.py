@@ -33,20 +33,20 @@ class Landmarks:
                 print type(coordinates)
                 print coordinates
 
+    # Open landmarks and save as points if path is given
     def _open_landmarks(self, path):
-        # Open landmarks and save as points if path is given
         lm_file = open(path)
         lm_vectors = np.asarray([line.rstrip('\n') for line in lm_file], dtype=np.float64)
         self.points = lm_vectors
 
+    # Returns [x1, y1, x2, y2 ...]
     def get_list(self):
-        # Returns [x1, y1, x2, y2 ...]
         return np.asarray(self.points, dtype=np.float64)
 
+    # Returns two lists
+    # [x1, x2, ...]
+    # [y1, y2, ...]
     def get_two_lists(self,integer=False):
-        # Returns two lists
-        # [x1, x2, ...]
-        # [y1, y2, ...]
         x = self.points[0:][::2]
         y = self.points[1:][::2]
         if not integer:
@@ -54,8 +54,8 @@ class Landmarks:
         else:
             return np.asarray(x, dtype=np.int32),np.asarray(y, dtype=np.int32)
 
+    # Returns [[x1, y2], [y1, y2], ...]
     def get_matrix(self, cv=False):
-        # Returns [[x1, y2], [y1, y2], ...]
         x, y = self.get_two_lists()
         if not cv:
             return np.asarray(zip(x,y), dtype=np.float64)
@@ -69,12 +69,14 @@ class Landmarks:
     def _set_matrix(self, matrix):
         self.points = np.asarray(matrix.flatten(), dtype=np.float64)
 
+    # Normalize landmark and return norm
     def scale(self):
         self_list = self.get_list()
         norm = self.get_norm()
         result = self_list/norm
         return Landmarks(result), norm
 
+    # Translate landmark to origin
     def to_origin(self):
         x,y = self.get_two_lists()
 
@@ -83,6 +85,7 @@ class Landmarks:
 
         return (np.mean(x), np.mean(y)), Landmarks((xtranslated,ytranslated))
 
+    # Return the norm of the landmark
     def get_norm(self):
         self_list = self.get_list()
         return np.linalg.norm(self_list)
@@ -98,13 +101,12 @@ class Landmarks:
         y_scale = y * ratio
         return Landmarks((x_scale, y_scale))
 
+    # Find extrema of coordinates of landmark
     def find_extrema(self):
         x,y = self.get_two_lists()
         return max(x), min(x), max(y), min(y)
 
-
-
-
+######################
 
 # Open one tooth for one person. Returns landmark.
 def load_one_landmark(person, tooth):
@@ -133,8 +135,8 @@ def load_all_landmarks_for_tooth_except_test(tooth, test):
             print str(i) + "...",
             path = os.path.join(paths.LANDMARK, 'landmarks'+str(i)+'-'+str(tooth)+'.txt')
             landmark_list.append(Landmarks(path))
-    return landmark_list    
-    
+    return landmark_list
+
 # Load all landmarks for one person. Return a list containg 8 landmark objects.
 def load_landmarks_for_person(person):
     print "Opening all landmarks for person " + str(person) + "."
@@ -146,6 +148,7 @@ def load_landmarks_for_person(person):
         landmark_list.append(Landmarks(path))
     return landmark_list
 
+# Load all landmarks
 def load_all_landmarks():
     print "Opening all landmarks "
     landmarks_list = []
@@ -179,7 +182,7 @@ def find_global_bounding_box(landmarks_list, error=0):
         points.append([[third, fourth]])
     return cv2.boundingRect(np.asarray(points, np.int32))
 
-
+# Find extrema of list of landmarks
 def find_extrema(landmark_list):
     maxx = 0.0
     maxy = 0.0
@@ -199,6 +202,7 @@ def find_extrema(landmark_list):
 
     return int(maxx), int(minx), int(maxy), int(miny)
 
+# Find extrema of list of list of landmarks
 def find_extrema_list(list_of_landmark_lists):
     maxx = 0.0
     maxy = 0.0
@@ -216,11 +220,9 @@ def find_extrema_list(list_of_landmark_lists):
             miny = tminy
     return int(maxx), int(minx), int(maxy), int(miny)
 
+# Rescale a list of landmarks with the given ratio
 def rescale_list(landmark_list, ratio):
     result = []
     for lm in landmark_list:
         result.append(lm.rescale(ratio))
     return result
-
-def calc_average_of_lm_list(landmark_list):
-    print landmark_list
