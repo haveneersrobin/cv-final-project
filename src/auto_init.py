@@ -13,7 +13,6 @@ def auto_init(model, norm, tooth, radiograph):
     # Load all landmarks
     landmarks = load_all_landmarks()
 
-<<<<<<< HEAD
     # Find position in image where to search
     maxx, minx, maxy, miny = find_extrema_list(landmarks)
 
