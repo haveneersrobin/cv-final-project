@@ -2,7 +2,7 @@ import paths
 import cv2
 import sys
 from matplotlib import pyplot as plt
-
+from ASM import *
 from landmarks import *
 from radiograph import *
 
@@ -13,59 +13,62 @@ def auto_init(model, norm, tooth, radiograph):
     # Load all landmarks
     landmarks = load_all_landmarks()
 
-    # Find position in image where to search
-    maxx, minx, maxy, miny = find_extrema_list(landmarks)
+    for lm in landmarks:
+        model, _, norm = findMeanShape(lm)
 
-    ratios = []
-    templates = []
+        # Find position in image where to search
+        maxx, minx, maxy, miny = find_extrema_list(landmarks)
 
-    for i in range(1, 15):
-        loaded = load_image(i)
-        r, dim, curr_image = scale_radiograph(loaded, 800)
-        rescale_lm = rescale_list(landmarks[i-1], r)
-        ratios.append(r)
-        teeth_template = find_global_bounding_box(rescale_lm, 5)
-        cropped = cutout(curr_image, teeth_template)
-        templates.append(cropped)
+        ratios = []
+        templates = []
 
-    # Cropped input image
-    img_r, dim, curr_cropped_image = scale_radiograph(image_person, 800)
-    cropped_image_person = curr_cropped_image[int(img_r*miny):int(img_r*maxy), int(img_r*minx):int(img_r*maxx)]
+        for i in range(1, 15):
+            loaded = load_image(i)
+            r, dim, curr_image = scale_radiograph(loaded, 800)
+            rescale_lm = rescale_list(landmarks[i-1], r)
+            ratios.append(r)
+            teeth_template = find_global_bounding_box(rescale_lm, 5)
+            cropped = cutout(curr_image, teeth_template)
+            templates.append(cropped)
 
-    locx = 0
-    locy = 0
-    broke = False
-    scores = [0]*14
-    for index, template in enumerate(templates):
-        _, w, h = template.shape[::-1]
-        res = cv2.matchTemplate(cropped_image_person,template,cv2.cv.CV_TM_CCOEFF_NORMED)
-        _, score, _, (x,y) = cv2.minMaxLoc(res)
-        if score > 0.99:
-            scores = [0]*14
-            scores[index] = score
-            print
-            print "Near perfect match. Breaking. Score= ", score
-            locx, locy = (x,y)
-            broke = True
-            break
-        else:
-            scores[index] = score
-            locx += score*x
-            locy += score*y
-    if(not(broke)):
-        locx /= 14
-        locy /= 14
+        # Cropped input image
+        img_r, dim, curr_cropped_image = scale_radiograph(image_person, 800)
+        cropped_image_person = curr_cropped_image[int(img_r*miny):int(img_r*maxy), int(img_r*minx):int(img_r*maxx)]
 
-    offset_x, offset_y = average_starting(tooth,img_r, img_r*minx+locx, img_r*miny+locy, scores)
+        locx = 0
+        locy = 0
+        broke = False
+        scores = [0]*14
+        for index, template in enumerate(templates):
+            _, w, h = template.shape[::-1]
+            res = cv2.matchTemplate(cropped_image_person,template,cv2.cv.CV_TM_CCOEFF_NORMED)
+            _, score, _, (x,y) = cv2.minMaxLoc(res)
+            if score > 0.99:
+                scores = [0]*14
+                scores[index] = score
+                print
+                print "Near perfect match. Breaking. Score= ", score
+                locx, locy = (x,y)
+                broke = True
+                break
+            else:
+                scores[index] = score
+                locx += score*x
+                locy += score*y
+        if(not(broke)):
+            locx /= 14
+            locy /= 14
 
-    mx = model[0]
-    my = model[1]
-    mx = ((mx + abs(mx.min()))*norm*img_r)+int(img_r*minx)+locx+offset_x
-    my = ((my + abs(my.min()))*norm*img_r)+int(img_r*miny)+locy+offset_y
+        offset_x, offset_y = average_starting(tooth,img_r, img_r*minx+locx, img_r*miny+locy, scores)
+
+        mx = model[0]
+        my = model[1]
+        mx = ((mx + abs(mx.min()))*norm*img_r)+int(img_r*minx)+locx+offset_x
+        my = ((my + abs(my.min()))*norm*img_r)+int(img_r*miny)+locy+offset_y
 
 
-    zipped = np.asarray(zip(np.asarray(mx, dtype=np.float64), np.asarray(my,dtype=np.float64)), dtype=np.int32)
-    cv2.polylines(curr_cropped_image, [zipped], True, (0, 255, 0))
+        zipped = np.asarray(zip(np.asarray(mx, dtype=np.float64), np.asarray(my,dtype=np.float64)), dtype=np.int32)
+        cv2.polylines(curr_cropped_image, [zipped], True, (0, 255, 0))
     cv2.imshow("placed", curr_cropped_image)
     cv2.waitKey(0)
     return Landmarks((mx, my))

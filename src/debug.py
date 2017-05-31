@@ -49,3 +49,9 @@ def draw_with_rect(shapes,rect, color = 'blue', originAtZero = False):
     rect = patches.Rectangle((rect[0], rect[1]), rect[2], rect[3],fill=False)
     ax.add_patch(rect)
     plt.show()
+
+def get_color(RGBint):
+    blue =  RGBint & 255
+    green = (RGBint >> 8) & 255
+    red =   (RGBint >> 16) & 255
+    return red, green, blue
