@@ -17,25 +17,25 @@ def pcaManual(landmarks):
     eigvals, eigvecs = np.linalg.eigh(S)
     idx = np.argsort(-eigvals)
     eigval = eigvals[idx]
-    eigvecs = eigvecs[:, idx]   
+    eigvecs = eigvecs[:, idx]
     totalVar = np.sum(eigval)
-    
+
     i = 0
     var = 0
-    while var < 0.99*totalVar:        
+    while var < 0.99*totalVar:
         var += eigval[i]
         # print "variance",var/totalVar
         i+=1
 
     nbOfVals = i
-    # print "modes",nbOfVals    
+    # print "modes",nbOfVals
     return eigval[:nbOfVals], eigvecs[:,:nbOfVals]
-	
+
 def main():
 
     lm = load_all_landmarks_for_tooth(1)
     mean, result, _ = alignSetOfShapes(lm)
     vals, P = pcaManual(result)
-    
+
 if __name__ == '__main__':
     main()

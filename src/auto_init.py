@@ -19,6 +19,8 @@ def auto_init(model, norm, tooth, radiograph):
     ratios = []
     templates = []
 
+    # Create templates
+
     for i in range(1, 15):
         loaded = load_image(i)
         r, dim, curr_image = scale_radiograph(loaded, 800)
@@ -31,6 +33,8 @@ def auto_init(model, norm, tooth, radiograph):
     # Cropped input image
     img_r, dim, curr_cropped_image = scale_radiograph(image_person, 800)
     cropped_image_person = curr_cropped_image[int(img_r*miny):int(img_r*maxy), int(img_r*minx):int(img_r*maxx)]
+
+    # Find the best fitting template and return weighted average of offsets
 
     locx = 0
     locy = 0
@@ -56,6 +60,8 @@ def auto_init(model, norm, tooth, radiograph):
         locx /= 14
         locy /= 14
 
+    # Find average offset of landmarks using the scores from above
+
     offset_x, offset_y = average_starting(tooth,img_r, img_r*minx+locx, img_r*miny+locy, scores)
 
     mx = model[0]
@@ -63,14 +69,9 @@ def auto_init(model, norm, tooth, radiograph):
     mx = ((mx + abs(mx.min()))*norm*img_r)+int(img_r*minx)+locx+offset_x
     my = ((my + abs(my.min()))*norm*img_r)+int(img_r*miny)+locy+offset_y
 
-
-    zipped = np.asarray(zip(np.asarray(mx, dtype=np.float64), np.asarray(my,dtype=np.float64)), dtype=np.int32)
-    cv2.polylines(curr_cropped_image, [zipped], True, (0, 255, 0))
-    cv2.imshow("placed", curr_cropped_image)
-    cv2.waitKey(0)
-
     return Landmarks((mx, my))
 
+# Calculate the average offset
 def average_starting(tooth, img_r, minx, miny, scores):
     temp_x = 0
     temp_y = 0
@@ -89,11 +90,10 @@ def average_starting(tooth, img_r, minx, miny, scores):
         ret_y = (temp_y/weight)-miny
     else:
         ret_y = miny-(temp_y/weight)
-    print ret_x
-    print ret_y
+        
     return ret_x, ret_y
 
-
+# Only for testing purposes
 def main():
     lm  = load_one_landmark(3, 4)
     i = load_image(26)
@@ -101,5 +101,6 @@ def main():
     normalized, norm = result.scale()
 
     auto_init(normalized.get_two_lists(), norm,4,i)
+
 if __name__ == '__main__':
     main()
