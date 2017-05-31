@@ -163,7 +163,7 @@ def leaveOneOut():
 def getAutoTeeth():
     # Read image.
     print "Reading image."
-    test_image = 29
+    test_image = 1
     image = load_image(test_image)
     ratio, new_dimensions, image2 = scale_radiograph(image, 800)
     # image2 = image.copy()
@@ -188,9 +188,10 @@ def getAutoTeeth():
         teeth.append(init_tooth)
         foundPointsX1, foundPointsY1 = init_tooth.get_two_lists(integer=True)
         Nb=40
-        clr = clrs.values()[tooth_to_fit]
+        clr = get_color(tooth_to_fit-1)
+        print clr
         for i in range(0,Nb):
-            cv2.line(image2, (foundPointsX1[i],foundPointsY1[i]),(foundPointsX1[(i+1) % Nb],foundPointsY1[(i+1) % Nb]), (255,255,255), 2)
+            cv2.line(image2, (foundPointsX1[i],foundPointsY1[i]),(foundPointsX1[(i+1) % Nb],foundPointsY1[(i+1) % Nb]), clr, 2)
     cv2.imshow('2',image2)
     # cv2.imwrite(paths.FOUND+name+'_method2.png',image2)
     cv2.waitKey(0)
