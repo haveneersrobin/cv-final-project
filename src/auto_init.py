@@ -2,7 +2,7 @@ import paths
 import cv2
 import sys
 from matplotlib import pyplot as plt
-
+from ASM import *
 from landmarks import *
 from radiograph import *
 
@@ -13,6 +13,7 @@ def auto_init(model, norm, tooth, radiograph):
     # Load all landmarks
     landmarks = load_all_landmarks()
 
+<<<<<<< HEAD
     # Find position in image where to search
     maxx, minx, maxy, miny = find_extrema_list(landmarks)
 
@@ -68,6 +69,7 @@ def auto_init(model, norm, tooth, radiograph):
     # cv2.polylines(curr_cropped_image, [zipped], True, (0, 255, 0))
     # cv2.imshow("placed", curr_cropped_image)
     # cv2.waitKey(0)
+
     return Landmarks((mx, my))
 
 def average_starting(tooth, img_r, minx, miny, scores):
