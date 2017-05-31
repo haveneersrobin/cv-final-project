@@ -20,6 +20,7 @@ from manual_init import *
 from auto_init import *
 from radiograph import *
 from debug import *
+import matplotlib.colors as colors
 
 def main():
     print "Setup variables."
@@ -83,15 +84,18 @@ def leaveOneOut():
 
     print "Setup variables."
     # Setup variabls.
-    maxIter = 10
+    # maxIter = 5
     test_image = 1
-    allFoundPoints = []
+    name = "%02d" % test_image
+    allFoundPoints1 = []
+    allFoundPoints2 = []
 
     cWhite = (255,255,255)
     cBlue = (255,0,0)
     cGreen = (0,255,0)
+    cGrey = (64,64,64)
 
-    for tooth_to_fit in range(1,2):
+    for tooth_to_fit in range(1,9):
 
         # Read image.
         print "Reading image."
@@ -109,35 +113,87 @@ def leaveOneOut():
         # Manual Init.
         print "Manual initialisation."
         init_tooth = manual_init(meanShape.get_two_lists(), norm, image)
+        # init_tooth = auto_init(meanShape.get_two_lists(), norm, tooth_to_fit, image)
 
         print "Scaling radiograph."
         ratio, new_dimensions, image = scale_radiograph(image, 800)
 
         # Iterate until convergence.
         print "Starting iterations."
-        Y, foundPoints = iterate(tooth_to_fit, init_tooth, meanShape, ASM_P, eigenvalues, image, maxIter)
-        allFoundPoints.append(foundPoints)
+        Y, foundPoints1 = iterate(tooth_to_fit, init_tooth, meanShape, ASM_P, eigenvalues, image, maxIter=5, method=1, lenProfile=5)
+        Y, foundPoints2 = iterate(tooth_to_fit, init_tooth, meanShape, ASM_P, eigenvalues, image, maxIter=5, method=2, lenProfile=5, lenSearch=7)
+        allFoundPoints1.append(foundPoints1)
+        allFoundPoints2.append(foundPoints2)
 
 
 
     # # Plot found points.
     Nb = 40
-    for idx in range(0,len(allFoundPoints)):
-        foundPointsX, foundPointsY = allFoundPoints[idx].get_two_lists(integer=True)
+    image1 = image.copy()
+    image2 = image.copy()
+    for idx in range(0,len(allFoundPoints1)):
+        foundPointsX1, foundPointsY1 = allFoundPoints1[idx].get_two_lists(integer=True)
+        foundPointsX2, foundPointsY2 = allFoundPoints2[idx].get_two_lists(integer=True)
+        
+        canvas = np.zeros(image.shape)
+        coords = np.asarray([[foundPointsX1[i],foundPointsY1[i]] for i in range(0,Nb)])
+        cv2.fillConvexPoly(canvas, coords, (64.0, 64.0, 64.0))
+        cv2.imwrite(paths.FOUND+name+'-'+str(idx)+'.png',canvas)
+        
         lms, norm = original_lms[idx].scale()
         originalX, originalY = lms.get_two_lists()
         originalY *= ratio*norm
         originalX *= ratio*norm
         originalX = np.rint(originalX).astype(np.uint32)
-        originalY = np.rint(originalY).astype(np.uint32)
+        originalY = np.rint(originalY).astype(np.uint32)        
         for i in range(0,Nb):
-            cv2.line(image, (foundPointsX[i],foundPointsY[i]),(foundPointsX[(i+1) % Nb],foundPointsY[(i+1) % Nb]), cBlue, 1)
+            cv2.line(image1, (foundPointsX1[i],foundPointsY1[i]),(foundPointsX1[(i+1) % Nb],foundPointsY1[(i+1) % Nb]), cBlue, 2)
+            cv2.line(image1, (originalX[i],originalY[i]),(originalX[(i+1) % Nb],originalY[(i+1) % Nb]), cGreen, 1)
         for i in range(0,Nb):
-            cv2.line(image, (originalX[i],originalY[i]),(originalX[(i+1) % Nb],originalY[(i+1) % Nb]), cGreen, 1)
-    cv2.imshow('',image)
+            cv2.line(image2, (foundPointsX2[i],foundPointsY2[i]),(foundPointsX2[(i+1) % Nb],foundPointsY2[(i+1) % Nb]), cBlue, 2)
+            cv2.line(image2, (originalX[i],originalY[i]),(originalX[(i+1) % Nb],originalY[(i+1) % Nb]), cGreen, 1)
+    # cv2.imshow('1',image1)
+    cv2.imwrite(paths.FOUND+name+'_method1.png',image1)
+    # cv2.imshow('2',image2)
+    cv2.imwrite(paths.FOUND+name+'_method2.png',image2)
     cv2.waitKey(0)
 
-    return allFoundPoints
+    # return allFoundPoints
+    
+def getAutoTeeth():
+    # Read image.
+    print "Reading image."
+    test_image = 29
+    image = load_image(test_image)
+    ratio, new_dimensions, image2 = scale_radiograph(image, 800)
+    # image2 = image.copy()
+    teeth = []
+
+    clrs = colors.cnames
+    print clrs
+    
+    for tooth_to_fit in range(1,9):
+        # Read landmarks for tooth.
+        print "Reading landmarks."
+        landmark_list = load_all_landmarks_for_tooth(tooth_to_fit)
+    
+        # Build ASM.
+        print "Building ASM model."
+        meanShape, ASM_P, eigenvalues, norm = buildASM(landmark_list)
+    
+        # Manual Init.
+        print "Manual initialisation."
+        # init_tooth = manual_init(meanShape.get_two_lists(), norm, image)
+        init_tooth = auto_init(meanShape.get_two_lists(), norm, tooth_to_fit, image)
+        teeth.append(init_tooth)
+        foundPointsX1, foundPointsY1 = init_tooth.get_two_lists(integer=True)
+        Nb=40
+        clr = clrs.values()[tooth_to_fit]
+        for i in range(0,Nb):
+            cv2.line(image2, (foundPointsX1[i],foundPointsY1[i]),(foundPointsX1[(i+1) % Nb],foundPointsY1[(i+1) % Nb]), (255,255,255), 2)
+    cv2.imshow('2',image2)
+    # cv2.imwrite(paths.FOUND+name+'_method2.png',image2)
+    cv2.waitKey(0)
 
 def meanshapevariance():
 
@@ -268,4 +324,4 @@ def validateResults(allFoundPoints, originalLms):
         originals = originalLms[idx]
 
 if __name__ == '__main__':
-    main()
+    getAutoTeeth()

@@ -23,12 +23,13 @@ def pcaManual(landmarks):
     
     i = 0
     var = 0
-    while var < 0.99*totalVar:
+    while var < 0.99*totalVar:        
         var += eigval[i]
+        # print "variance",var/totalVar
         i+=1
 
-    nbOfVals = i+1
-    # print nbOfVals    
+    nbOfVals = i
+    # print "modes",nbOfVals    
     return eigval[:nbOfVals], eigvecs[:,:nbOfVals]
 	
 def main():

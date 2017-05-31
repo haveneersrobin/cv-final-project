@@ -60,25 +60,29 @@ def applySobel(img):
     abs_grad_y = cv2.convertScaleAbs(sobely)
     sobel = cv2.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0)
 
+    # sobel = medianfilter(sobel,3)
+    
     return sobel
 
 # Process the image.
 def processImage(img):
 
-    whiteHatParam = 350
+    whiteHatParam = 400
 
-    blackHatParam = 80
+    blackHatParam = 60
 
     img = to_grayscale(img)
-
+    img = gaussian(img,3)
     img = medianfilter(img,9)
-    # img = gaussian(img,5)
+
     img = cv2.bilateralFilter(img, 9, 150, 150)
     whiteHat = whitehat(img,whiteHatParam)
     blackHat = blackhat(img,blackHatParam)
     img = hatfilter(img, whiteHat, blackHat)
-    img = AHE(img, 0.8, 256)
+    cv2.imwrite(paths.SOBEL+"HAT.png",img)
+    img = AHE(img, 1.0, 256)
     # img = cv2.equalizeHist(img)
+    cv2.imwrite(paths.SOBEL+"AHE.png",img)
 
     return img
 

@@ -64,10 +64,10 @@ def auto_init(model, norm, tooth, radiograph):
     my = ((my + abs(my.min()))*norm*img_r)+int(img_r*miny)+locy+offset_y
 
 
-    zipped = np.asarray(zip(np.asarray(mx, dtype=np.float64), np.asarray(my,dtype=np.float64)), dtype=np.int32)
-    cv2.polylines(curr_cropped_image, [zipped], True, (0, 255, 0))
-    cv2.imshow("placed", curr_cropped_image)
-    cv2.waitKey(0)
+    # zipped = np.asarray(zip(np.asarray(mx, dtype=np.float64), np.asarray(my,dtype=np.float64)), dtype=np.int32)
+    # cv2.polylines(curr_cropped_image, [zipped], True, (0, 255, 0))
+    # cv2.imshow("placed", curr_cropped_image)
+    # cv2.waitKey(0)
     return Landmarks((mx, my))
 
 def average_starting(tooth, img_r, minx, miny, scores):

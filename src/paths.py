@@ -2,6 +2,7 @@
 RADIO = '../data/Radiographs/'
 EXTRA = '../data/Radiographs/extra/'
 SEGMENT = '../data/Segmentations/'
+FOUND = '../data/FoundSegmentations/'
 RESULT = '../data/Combinations/'
 CLAHE = '../data/CLAHE/'
 HAT = '../data/HAT/'
