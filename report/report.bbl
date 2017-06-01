@@ -1,0 +1,30 @@
+\begin{thebibliography}{}
+
+\bibitem[Alavijeh and Mahdavi-Nasab, 2015]{imageenhance2}
+Alavijeh, F.~S. and Mahdavi-Nasab, H. (2015).
+\newblock Multi-scale morphological image enhancement of chest radiographs by a
+  hybrid scheme.
+\newblock {\em Journal of Medical Signals and Sensors}, 5:59–--68.
+
+\bibitem[Cootes et~al., 2000]{cootes2000introduction}
+Cootes, T., Baldock, E., and Graham, J. (2000).
+\newblock An introduction to active shape models.
+\newblock {\em Image processing and analysis}, pages 223--248.
+
+\bibitem[Cootes et~al., 1995]{cootestraining}
+Cootes, T.~F., Taylor, C.~J., Cooper, D.~H., and Graham, J. (1995).
+\newblock Active shape models - their training and application.
+\newblock {\em Comput. Vis. Image Underst.}, 61(1):38--59.
+
+\bibitem[I.~Frosio, 2009]{rainfilter}
+I.~Frosio, N. A.~B. (2009).
+\newblock Statistical based impulsive noise removal in digital radiography.
+\newblock {\em IEEE Transactions on Medical Imaging}, 28(1):3--16.
+
+\bibitem[X.~Wanga, 2005]{imageenhance}
+X.~Wanga, B. S.~W. (2005).
+\newblock Image enhancement for radiography inspection.
+\newblock {\em Proceedings of SPIE - The International Society for Optical
+  Engineering}, 5852.
+
+\end{thebibliography}

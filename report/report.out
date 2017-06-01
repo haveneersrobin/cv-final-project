@@ -1,0 +1,20 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Building an Active Shape Model}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Generalized Procrustes Analysis}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Principal Component Analysis}{section.2}% 4
+\BOOKMARK [1][-]{section.3}{Preprocessing the Radiographs}{}% 5
+\BOOKMARK [1][-]{section.4}{Fitting the Model to Images}{}% 6
+\BOOKMARK [2][-]{subsection.4.1}{Manual Initialization}{section.4}% 7
+\BOOKMARK [2][-]{subsection.4.2}{Automatic Initialization}{section.4}% 8
+\BOOKMARK [2][-]{subsection.4.3}{Fitting procedure}{section.4}% 9
+\BOOKMARK [3][-]{subsubsection.4.3.1}{Strongest Edge}{subsection.4.3}% 10
+\BOOKMARK [3][-]{subsubsection.4.3.2}{Grey Level Models}{subsection.4.3}% 11
+\BOOKMARK [1][-]{section.5}{Evaluation of the Results}{}% 12
+\BOOKMARK [2][-]{subsection.5.1}{Examples of Manual Segmentation}{section.5}% 13
+\BOOKMARK [2][-]{subsection.5.2}{Examples of Automatic Segmentation}{section.5}% 14
+\BOOKMARK [2][-]{subsection.5.3}{Fitting Procedure Evaluation}{section.5}% 15
+\BOOKMARK [1][-]{section.6}{Discussion}{}% 16
+\BOOKMARK [2][-]{subsection.6.1}{Preprocessing Alternatives}{section.6}% 17
+\BOOKMARK [2][-]{subsection.6.2}{Automatic Initialization Alternatives}{section.6}% 18
+\BOOKMARK [2][-]{subsection.6.3}{General Discussion}{section.6}% 19
+\BOOKMARK [1][-]{subsection.6.3}{References}{}% 20

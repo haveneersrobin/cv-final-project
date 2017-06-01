@@ -1,10 +1,21 @@
-\contentsline {section}{\numberline {1}Building of an Active Shape Model}{2}
-\contentsline {subsection}{\numberline {1.1}Generalized Procrustes Analysis}{2}
-\contentsline {subsection}{\numberline {1.2}Principal Component Analysis}{2}
-\contentsline {section}{\numberline {2}Preprocessing the Radiographs}{2}
-\contentsline {section}{\numberline {3}Fitting the Model to Images}{2}
-\contentsline {subsection}{\numberline {3.1}Manual Initialisation}{2}
-\contentsline {subsection}{\numberline {3.2}Automatic Initialisation}{2}
-\contentsline {section}{\numberline {4}Evaluation of the Results}{2}
-\contentsline {section}{\numberline {5}Discussion}{2}
-\contentsline {subsection}{\numberline {5.1}Further Improvements}{2}
+\select@language {english}
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}
+\contentsline {section}{\numberline {2}Building an Active Shape Model}{3}{section.2}
+\contentsline {subsection}{\numberline {2.1}Generalized Procrustes Analysis}{3}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Principal Component Analysis}{3}{subsection.2.2}
+\contentsline {section}{\numberline {3}Preprocessing the Radiographs}{5}{section.3}
+\contentsline {section}{\numberline {4}Fitting the Model to Images}{5}{section.4}
+\contentsline {subsection}{\numberline {4.1}Manual Initialization}{6}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Automatic Initialization}{7}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}Fitting procedure}{9}{subsection.4.3}
+\contentsline {subsubsection}{\numberline {4.3.1}Strongest Edge}{9}{subsubsection.4.3.1}
+\contentsline {subsubsection}{\numberline {4.3.2}Grey Level Models}{10}{subsubsection.4.3.2}
+\contentsline {section}{\numberline {5}Evaluation of the Results}{10}{section.5}
+\contentsline {subsection}{\numberline {5.1}Examples of Manual Segmentation}{10}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Examples of Automatic Segmentation}{11}{subsection.5.2}
+\contentsline {subsection}{\numberline {5.3}Fitting Procedure Evaluation}{12}{subsection.5.3}
+\contentsline {section}{\numberline {6}Discussion}{12}{section.6}
+\contentsline {subsection}{\numberline {6.1}Preprocessing Alternatives}{12}{subsection.6.1}
+\contentsline {subsection}{\numberline {6.2}Automatic Initialization Alternatives}{13}{subsection.6.2}
+\contentsline {subsection}{\numberline {6.3}General Discussion}{13}{subsection.6.3}
+\contentsline {section}{References}{14}{subsection.6.3}
