@@ -44,6 +44,9 @@ def auto_init(model, norm, tooth, radiograph):
         _, w, h = template.shape[::-1]
         res = cv2.matchTemplate(cropped_image_person,template,cv2.cv.CV_TM_CCOEFF_NORMED)
         _, score, _, (x,y) = cv2.minMaxLoc(res)
+        top_left = (x,y)
+        bottom_right = (top_left[0] + w, top_left[1] + h)
+        cv2.rectangle(cropped_image_person,top_left, bottom_right, 255, 1)
         if score > 0.99:
             scores = [0]*14
             scores[index] = score
@@ -59,6 +62,11 @@ def auto_init(model, norm, tooth, radiograph):
     if(not(broke)):
         locx /= 14
         locy /= 14
+
+
+    plt.imshow(cropped_image_person,cmap = 'gray')
+    plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+    plt.show()
 
     # Find average offset of landmarks using the scores from above
 
@@ -90,7 +98,7 @@ def average_starting(tooth, img_r, minx, miny, scores):
         ret_y = (temp_y/weight)-miny
     else:
         ret_y = miny-(temp_y/weight)
-        
+
     return ret_x, ret_y
 
 # Only for testing purposes
